@@ -4,6 +4,8 @@
 
 ;; Diacritical application
 
+(require 'subr-x)
+
 (defvar short-strike "̵")
 (defvar long-strike "̶")
 (defvar low-underline "̲")
@@ -106,6 +108,101 @@
   (interactive)
   (decorate-region #'bold-italic-string))
 
+
+;; Apply affects: bold, italic, bold-italic
+(defvar bold-A ?𝗔 "Base for bold character embellishments. All san-serif.")
+(defvar italic-A ?𝘈 "Base for italic character embellishments. All san-serif.")
+(defvar bold-italic-A ?𝘼 "Base for bold+italic character embellishments. All san-serif.")
+
+(defvar bold-a ?𝗮 "Base for bold character embellishments. All san-serif.")
+(defvar italic-a ?𝘢 "Base for italic character embellishments. All san-serif.")
+(defvar bold-italic-a ?𝙖 "Base for bold+italic character embellishments. All san-serif.")
+
+(defvar bold-0 ?𝟬 "Base for bold character embellishments. All san-serif.")
+(defvar italic-0 ?0 "Base for italic character embellishments. All san-serif.")
+(defvar bold-italic-0 ?0 "Base for bold+italic character embellishments. All san-serif.")
+
+(defun c-numeric? (char)
+  (<= ?0 char ?9))
+
+(defun c-lowercase? (char)
+  (<= ?a char ?z))
+
+(defun c-uppercase? (char)
+  (<= ?A char ?Z))
+
+(defun bold-shift-upper-letter (a-char)
+  (+ a-char (- bold-A ?A)))
+
+(defun bold-shift-lower-letter (a-char)
+  (+ a-char (- bold-a ?a)))
+
+(defun bold-shift-numeral (a-char)
+  (+ a-char (- bold-0 ?0)))
+
+(defun italic-shift-upper-letter (a-char)
+  (+ a-char (- italic-A ?A)))
+
+(defun italic-shift-lower-letter (a-char)
+  (+ a-char (- italic-a ?a)))
+
+(defun italic-shift-numeral (a-char)
+  (+ a-char (- italic-0 ?0)))
+
+(defun bold-italic-shift-upper-letter (a-char)
+  (+ a-char (- bold-italic-A ?A)))
+
+(defun bold-italic-shift-lower-letter (a-char)
+  (+ a-char (- bold-italic-a ?a)))
+
+(defun bold-italic-shift-numeral (a-char)
+  (+ a-char (- bold-italic-0 ?0)))
+
+(defun bold-italic-char (a-char)
+  (cond
+   ((c-lowercase? a-char) (bold-italic-shift-lower-letter a-char))
+   ((c-uppercase? a-char) (bold-italic-shift-upper-letter a-char))
+   ((c-numeric? a-char) (bold-italic-shift-numeral a-char))
+   (t a-char)))
+
+(defun shift-char (a-char lower-shift-fn upper-shift-fn numeral-shift-fn)
+  (cond
+   ((c-lowercase? a-char) (funcall lower-shift-fn a-char))
+   ((c-uppercase? a-char) (funcall upper-shift-fn a-char))
+   ((c-numeric? a-char) (funcall numeral-shift-fn a-char))
+   (t a-char)))
+
+(defun bold-char (a-char)
+  (shift-char a-char
+              #'bold-shift-lower-letter
+              #'bold-shift-upper-letter
+              #'bold-shift-numeral))
+
+(defun italic-char (a-char)
+  (shift-char a-char
+              #'italic-shift-lower-letter
+              #'italic-shift-upper-letter
+              #'italic-shift-numeral))
+
+(defun bold-italic-char (a-char)
+  (shift-char a-char
+              #'bold-italic-shift-lower-letter
+              #'bold-italic-shift-upper-letter
+              #'bold-italic-shift-numeral))
+
+
+
+(defun apply-affect (a-string shift-fn)
+  (concat (mapcar shift-fn a-string)))
+
+(defun bold-string (a-string)
+   (apply-affect a-string #'bold-char))
+
+(defun italic-string (a-string)
+   (apply-affect a-string #'italic-char))
+
+(defun bold-italic-string (a-string)
+   (apply-affect a-string #'bold-italic-char))
 
 
 ;; ------------------------------------------------------------------------------
