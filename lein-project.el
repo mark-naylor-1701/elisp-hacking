@@ -3,211 +3,169 @@
 ;; file:  lein-project.el
 ;; date:  2020-Dec-29
 
+;; Version: 0.9
+;; Package-Requires: ((clojure-mode "20201126.1558") (clj-refactor "20200831.1244"))
+;; Keywords: languages, clojure, lisp, cider
+
 ;;; Code:
 
+(defvar defn-re "^[^;]([ \t]*defn" "Identifier for the defn sexp.")
+(defvar deftest-re "^[^;]([ \t]*deftest" "Identifier for the deftest sexp.")
 
-;; (ns org.mark-naylor-1701.grid)
+(defvar ns-frag1 "(ns %s" "Start of the ns sexp.")
+(defvar ns-frag2 "(:require [clojure.test :refer :all]" "Add the clojure.test requirement.")
+(defvar ns-frag3 "[%s :refer :all]))" "Bind in definitions to be tested, close the ns sexp.")
 
+(defvar defn-frag1 "(deftest %s []" "Start of the deftest sexp.")
+(defvar defn-frag2 "\"Test for defn `%s'.\"" "Document string for the test")
+(defvar defn-frag3 "(testing" "Beginning of a test hierarchy.")
+(defvar defn-frag4 "\"FIXME, I fail.\"" "Message reported upon failure.")
+(defvar defn-frag5 "(is (= 0 1))))" "Default failing test, close the deftest sexpr.")
 
-;; (defn foo
-;;   "I don't do a whole lot."
-;;   ([]
-;;    (println "Hello, World!"))
-;;   ([x]
-;;    (println "Hello, World!" x))
-;;   ([x & args]
-;;    (println "Hello, World!" x  args)))
-
-;; (defn bar [])
-
-;; (defn foobar
-;; [])
-
-;; (defn baz[])
-
-;; (defn bar [])
-
-;; (defn baz	[])
-
-
-;; (defvar namespace-re "([:space:]*ns")
-;; (defvar defn-re "([:space:]*defn ")
-;; (defvar remainder-re "[[:space:])[]")
-
-(defvar namespace-re "([\t ]*ns[\t ]+.")
-(defvar defn-re "([\t ]*defn[\t ]+.")
-(defvar remainder-re "[\t )[]")
-
-
-(setq namespace-re "([:space:]*ns\\>")
-(setq defn-re "([:space:]*defn[\t $]")
-(setq remainder-re "[[:space:])[]")
-
-
-;; (search-forward-regexp namespace-re nil t)
-;; (search-forward-regexp defn-re nil t)
-
-
-(defun identifier (re)
-  "Finds the defining key word in a Clojure s-exp, starting with
-  the current point. Returns either the identifier or nil."
-  (when (search-forward-regexp re nil t)
-    (forward-word)
-    (backward-word)
-    (first
-     (s-split
-      remainder-re
-      (buffer-substring-no-properties
-       (point)
-       (line-end-position))))))
-
+(defvar test-suffix "-test" "String fragment that is part of Clojure deftest names.")
 
 ;;  clojure-expected-ns-function
 (defun namespace-id ()
   "Returns the namespace identifier, nil on failure."
-  (save-excursion
-    (goto-char 1)
-    (identifier namespace-re)))
+  (or (clojure-find-ns) (clojure-expected-ns)))
 
-(defun defn-id (&rest args)
-  "Returns a defn identifier, nil on failure."
-  (when (and (booleanp (first args)) (first args))
+
+(defun callable-id (regexp &optional get-first?)
+  "Returns a Clojure callable identifier, nil on failure. The
+kind of identifier will be determined by the supplied regular
+expression."
+  ;; If the defn sexp has been commented out, make a recursive call to
+  ;; find the next one.
+  (when (and (booleanp get-first?) get-first?)
     (goto-char 1))
-  (identifier defn-re))
+  (when  (search-forward-regexp regexp nil t)
+    (if (non-comment-line?)
+        (substring-no-properties (s-trim (cljr--extract-sexp)))
+      (callable-id))))
 
 
+(defun defn-id (&optional get-first?)
+  "Returns a Clojure defn identifier, nil on failure."
+  ;; If the defn sexp has been commented out, make a recursive call to
+  ;; find the next one.
+  (callable-id defn-re get-first?))
+
+
+(defun deftest-id (&optional get-first?)
+  "Returns a Clojure deftest identifier, nil on failure. deftest
+is part of the clojure.test namespace."
+  ;; If the deftest sexp has been commented out, make a recursive call to
+  ;; find the next one.
+  (callable-id deftest-re get-first?))
+
+
+;; Keep this for the edge case where a defn is defined twice.
 (defun uniques (xs)
   "Return only the unique items of a collection."
   (cl-labels (
-              (uniques (acc xs)
-                       (let*
-                           ((head (first xs))
-                            (tail (cdr xs)))
-                         (cond
-                          ((null xs) acc)
-                          ((member head acc) (uniques acc tail))
-                          (:else (uniques (append acc (list head)) tail))))))
+    (_uniques (acc xs)
+     ;; Implement with inner tail recursive version.
+      (let*
+          ((head (first xs))
+           (tail (cdr xs)))
+        (cond
+         ((null xs) acc)
+         ((member head acc) (_uniques acc tail))
+         (:else (_uniques (append acc (list head)) tail))))))
 
-    (uniques () xs)))
+    (_uniques () xs)))
 
-(defun defn-ids ()
-  "Returns a collection of all the defn identifiers. Possibly empty."
+
+(defun callable-ids (locator)
+  "Returns a collection of all the callable identifiers. Possibly
+empty. The `locator' function determines the kind of definition
+to be found."
   (save-excursion
-    (when-let (id (defn-id t))
-      (list id)
-
+    (when-let (id (funcall locator t))
       (cl-labels
-          ((defn-ids ()
-             (let* ((id (defn-id)))
+          ((_callable-ids ()
+            ;; Recursive definition hides implementation.
+             (let* ((id (funcall locator)))
                (cond
                 ((null id) ())
-                (:else (cons id (defn-ids)))))))
+                (:else (cons id (_callable-ids)))))))
 
-        (uniques (cons id (defn-ids)))))))
+        (uniques (cons id (_callable-ids)))))))
+
+
+(defun defn-ids ()
+  "Return a collection, possible empty, of defn identifiers."
+  (callable-ids #'defn-id))
+
+
+(defun deftest-ids ()
+  "Return a collection, possible empty, of deftest identifiers."
+  (callable-ids #'deftest-id))
 
 
 (defun test-name (identifier)
-  "Append \"-test\" to the identifer, for use in the test module."
-  (concat identifier "-test"))
+  "Append `test-suffix' to the identifer, for use in the test module."
+  (concat identifier test-suffix))
 
-;; Probably going to drop this one.
-(defun test-names (identifiers)
-  "Convert a collection of identifiers to their companion test names."
-  (mapcar #'test-name identifiers))
-
-
-;; (ns org.mark-naylor-1701.grid-test
-;;   (:require [clojure.test :refer :all]
-;;             [org.mark-naylor-1701.grid :refer :all]))
-
-(setq ns-frag1 "(ns %s")
-(setq ns-frag2 "(:require [clojure.test :refer :all]")
-(setq ns-frag3 "[%s :refer :all]))")
 
 (defun define-ns (ns-name)
-  "docstring"
-
+  "Return a collection of string fragments that comprise a
+Clojure namespace definition."
   (list
     (format ns-frag1 (test-name ns-name))
     ns-frag2
     (format ns-frag3 ns-name)))
 
 
-;; (defun insert-namespace (ns-name)
-;;   (save-excursion
-;;     (goto-char (point-min))
-;;     (insert (define-ns ns-name))
-;;     (indent-for-tab-command)
-;;     (newline 2)))
-
-
-
-(setq defn-frag1 "(deftest %s []")
-(setq defn-frag2 "\"Test for defn `%s'.\"")
-(setq defn-frag3 "(testing")
-(setq defn-frag4 "\"FIXME, I fail.\"")
-(setq defn-frag5 "(is (= 0 1))))")
-
-
-(defun define-defn (defn-name)
+(defun define-defn (name)
+  "Return a collection of string fragments that comprise a
+Clojure defn definition."
   (list
    nil
    nil
-   (format defn-frag1 (test-name defn-name))
-   (format defn-frag2 defn-name)
+   (format defn-frag1 (test-name name))
+   (format defn-frag2 name)
    defn-frag3
    defn-frag4
    defn-frag5))
 
-(defun insert-sexp (pos defn-frags)
-  (let* ((head (first defn-frags))
-         (tail (rest defn-frags)))
+
+(defun insert-sexp (position sexp-frags)
+  "Move the point to the position. Insert the sexp fragment. Format/indent appropriately."
+  (let* ((head (first sexp-frags))
+         (tail (rest sexp-frags)))
     (save-excursion
-      (goto-char pos)
+      (goto-char position)
       (insert (or head ""))
       (mapc (lambda (x) (newline) (insert (or x "")) (indent-for-tab-command))
-            tail)
-      )
-    ))
-
-(defn-ids)
+            tail))))
 
 
+(defun needs-tests (functions tests)
+  "Return a collection of test names that are not currently
+  defined in test module."
+  (let* ((base-defns (mapcar #'(lambda (x) (string-remove-suffix test-suffix x)) tests)))
+    (-filter #'(lambda (x) (not (member x base-defns))) functions)))
 
-
-(defun insert-defn (defn-name)
-  (save-excursion
-    (goto-char (point-max))
-    (newline 2)
-    (let* ((start (point)))
-      (insert (define-defn defn-name))
-      (push-mark)
-      (goto-char start)
-      (indent-for-tab-command)
-      (pop-mark))))
-
-(defun insert-ns (ns-name)
-  "docstring"
-  (insert-sexp (point-min) (define-ns  ns-name))
-  )
-;;------------------------------------------------------------------------------
 
 (defun insert-defn (xs)
-  "docstring"
-  (insert-sexp (point-max) xs)
-  )
+  "Explicitly defined helper function, used to avoid problems
+debugging the top level calling function when it was implemented
+with a lambda. Insertions take place at the end of the buffer."
+  (insert-sexp (point-max) xs))
+
 
 (defun lein-test-file ()
   "Create/open Clojure test module. Works in the Leiningen
 project environment."
   (interactive)
-  (let*  ((this-file (buffer-file-name))
+  (let*  ((current-file (buffer-file-name))
           (test-dir (s-replace "src" "test" default-directory))
           (test-file (s-replace
                       "."
                       "_test."
-                      (s-replace "src" "test" this-file)))
-          (new-namespace-id (or (namespace-id) (clojure-find-ns) (clojure-expected-ns)))
+                      (s-replace "src" "test" current-file)))
+          (new-namespace-id (namespace-id))
           (new-defn-ids (defn-ids))
           )
 
@@ -215,31 +173,46 @@ project environment."
       (make-directory test-dir t))
 
     (if (file-exists-p test-file)
-        (find-file-read-only test-file)
+
+        ;; TODO: move the "THEN" portion to a separate function.
+        ;; Improves readability; allows testing the fragment separate
+        ;; from the top level function.
+        (progn
+          (find-file test-file)
+          (save-excursion
+            ;; Add the namespace definition if there isn't one already.
+            (unless (clojure-find-ns)
+              (first-content-line)
+              (newline)
+              (insert-sexp (point) (define-ns new-namespace-id))
+              (newline))
+
+            ;; Add in any missing deftests.
+            (let ((existing-deftests (deftest-ids)))
+              (mapc #'insert-defn
+                    (mapcar #'define-defn
+                            (needs-tests new-defn-ids existing-deftests))))))
+
+      ;; TODO: Move the else portion to a separate function. Improves
+      ;; readability; allows testing the fragment separate from the top
+      ;; level function.
+
       ;; Shadow to keep the clr-refactor package from adding a
       ;; namepace definition to the new file.
       (let* ((cljr-add-ns-to-blank-clj-files nil))
-
         (find-file test-file)
-        ;;(delete-buffer)
 
+        ;; Create the namespace for the new test module.
         (insert-sexp (point-min) (define-ns new-namespace-id))
+        (move-beginning-of-line 1)
+        (newline 2)
 
+        ;; lambda in place of the explicitly defined `insert-defn'
+        ;; caused problems when instrumenting with `edebug-defun'.
         (mapc #'insert-defn
               (mapcar #'define-defn new-defn-ids))
 
-        (mwn/new-source-header)
-        (newline)
-
-        )
-
-
-      )))
-
-
-
-
-
+        (mwn/new-source-header)))) )
 
 
 
