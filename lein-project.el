@@ -1,11 +1,16 @@
-;;; lein-project --- Provides assistance in creating Clojure test modules/defns
-;; author: Mark W. Naylor
+;;; lein-project.el --- Provides assistance in creating Clojure test modules/defns
+
+;; Author: Mark W. Naylor
 ;; file:  lein-project.el
 ;; date:  2020-Dec-29
 
 ;; Version: 0.9
 ;; Package-Requires: ((clojure-mode "20201126.1558") (clj-refactor "20200831.1244"))
 ;; Keywords: languages, clojure, lisp, cider
+;; License: 3 Clause BSD
+
+;; Commentary:
+;; Values and functions neeed to create test modules and functions from Clojure source files.
 
 ;;; Code:
 
@@ -214,6 +219,8 @@ project environment."
 
         (mwn/new-source-header)))) )
 
+(provide 'lein-project)
+
 
 
 ;; ------------------------------------------------------------------------------
@@ -246,3 +253,5 @@ project environment."
 ;; CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 ;; OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+;;; lein-project.el ends here
