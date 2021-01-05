@@ -14,7 +14,7 @@
 
 ;;; Code:
 
-(defvar defn-re "^[^;]*([ \t]*defn" "Identifier for the defn sexp.")
+(defvar defn-re "^[^;]*([ \t]*defn[^-]" "Identifier for the defn sexp.")
 (defvar deftest-re "^[^;]*([ \t]*deftest" "Identifier for the deftest sexp.")
 
 (defvar ns-frag1 "(ns %s" "Start of the ns sexp.")
