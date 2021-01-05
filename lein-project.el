@@ -167,8 +167,8 @@ project environment."
   (let*  ((current-file (buffer-file-name))
           (test-dir (s-replace "src" "test" default-directory))
           (test-file (s-replace
-                      "."
-                      "_test."
+                      ".clj"
+                      "_test.clj"
                       (s-replace "src" "test" current-file)))
           (new-namespace-id (namespace-id))
           (new-defn-ids (defn-ids))
