@@ -16,7 +16,7 @@
 (defun bbm-set (key value)
   (when (and (bufferp key)
              (integerp value))
-    (map-put buffer-bookmarks key value)))
+    (map-put! buffer-bookmarks key value)))
 
 (defun bbm-get (key)
   (when (bufferp key)
@@ -35,18 +35,18 @@
 
 (defun optional-buffer-bookmark-set ()
   "Only set a buffer bookmark if one does not aleady exist."
-  (unless (get-buffer-marker)
-    (session-marker-set)))
+  (unless (bbm-get (current-buffer))
+    (bbm-set buffer-bookmarks (current-buffer))))
 
 (defun buffer-bookmark-remove ()
   "A clean-up function. When a buffer is killed, its bookmark entry is no longer needed. Meant to be used with kill-buffer-hook"
-  (when (boundp 'session-markers)
+  (when (boundp 'buffer-bookmarks)
     (map-delete buffer-bookmarks (current-buffer))))
 
 (defun page-up-with-bookmark ()
   (interactive)
   (page-up)
-  (session-marker-set))
+  (buffer-bookmark-set))
 
 (defun page-down-with-bookmark ()
   (interactive)
