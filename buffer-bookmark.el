@@ -10,6 +10,7 @@
 ;; date:  2021-Feb-02
 
 (require 'map)
+(require 'better-paging)
 
 (defvar buffer-bookmarks (make-hash-table) "Data structure for tracking bookmarks.")
 
@@ -43,15 +44,27 @@
   (when (boundp 'buffer-bookmarks)
     (map-delete buffer-bookmarks (current-buffer))))
 
-(defun page-up-with-bookmark ()
+(defun page-up-with-bookmark (&optional page-fn)
   (interactive)
-  (page-up)
-  (buffer-bookmark-set))
+  (let ((page-up (or page-fn #'page-up)))
+    (funcall page-up)
+    (buffer-bookmark-set)))
 
-(defun page-down-with-bookmark ()
+(defun page-down-with-bookmark (&optional page-fn)
   (interactive)
-  (page-down)
-  (optional-buffer-bookmark-set))
+  (let ((page-down (or page-fn #'page-down)))
+    (funcall page-down)
+    (optional-buffer-bookmark-set)))
+
+(defun erc-page-up-with-bookmark ()
+  (interactive)
+  (page-up-with-bookmark #'erc-page-up))
+
+(defun erc-page-down-with-bookmark ()
+  (interactive)
+  (page-down-with-bookmark #'erc-page-down))
+
+
 
 (provide 'buffer-bookmark)
 ;; ------------------------------------------------------------------------------
