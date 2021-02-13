@@ -10,6 +10,7 @@
 ;; date:  2021-Feb-02
 
 (require 'map)
+(require 'subr-x)
 (require 'better-paging)
 
 (defvar buffer-bookmarks (make-hash-table) "Data structure for tracking bookmarks.")
