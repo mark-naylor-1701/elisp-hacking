@@ -8,6 +8,7 @@
 ;; Keywords:
 ;; date:  2021-Feb-25
 
+(require 'cl)                           ; Built in, ergo not in Package-Requires
 (require 'dash)
 (require 's)
 
@@ -23,6 +24,32 @@
    (mapcar
     #'(lambda (x) (last (s-split "/" x)))
     xs)))
+
+(defun cw/sources (xs)
+  "Get the stripped down crossword files (sorted). Target file
+name removed if in the collection."
+  (sort (remove-if #'cw/contains (cw/bases xs)) #'string-lessp))
+
+(defun cw/build-command (xs)
+  "Given a collection of file names, create the concatenation command string."
+  (when (and xs (listp xs))
+    (cons "pdfunite"
+          (concat (s-join " " (cw/sources xs))
+                  " "
+                  cw/combined))))
+
+(defun cw/log-print (xs)
+  "Add the pdf files in the collection to the print log."
+  (let ((src (cw/sources xs))
+        (src-buffer  (current-buffer))
+        (working (find-file cw/printed)))
+    (goto-char (point-max))
+    (dolist (item src)
+      (insert item)
+      (newline))
+    (save-buffer working)
+    (kill-buffer working)
+    (switch-to-buffer src-buffer)))
 
 (provide 'crossword)
 
