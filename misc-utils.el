@@ -1,7 +1,5 @@
 ;;; misc-utils.el --- General functions that currently don't fit anywhere else
 
-;; Copyright (©) 2021 Mark W. Naylor
-
 ;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
 ;; Version: 0.9
 ;; Package-Requires: ((emacs "26.0"))
@@ -44,7 +42,15 @@ file associated with them."
        (-filter #'bufferp)
        (-filter #'(lambda (buffer) (s-contains? fragment (buffer-name buffer))))))
 
+(defun buffer-or-name? (buffer-or-name)
+  "Is `buffer-or-name' either a buffer or a string?"
+  (or (bufferp buffer-or-name)
+      (stringp buffer-or-name)))
 
+(defun buffer-directory (buffer)
+  "If the `buffer' is a buffer, return its directory as a string, nil otherwise."
+  (when (bufferp  buffer)
+    (with-current-buffer buffer default-directory)))
 
 ;; -----------------------------------------------------------------------------
 
