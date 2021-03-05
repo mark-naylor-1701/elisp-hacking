@@ -96,10 +96,19 @@ are pdf documents."
   (interactive)
   (apply pdfunite (pdfunite-target))
   )
-;; (-filter #'pdf? (dired-get-marked-files-improved))
   (->> buffers
        (-filter #'bufferp)
        (-filter #'(lambda (buffer) (s-contains? fragment (buffer-name buffer))))))
+
+(defun buffer-or-name? (buffer-or-name)
+  "Is `buffer-or-name' either a buffer or a string?"
+  (or (bufferp buffer-or-name)
+      (stringp buffer-or-name)))
+
+(defun buffer-directory (buffer)
+  "If the `buffer' is a buffer, return its directory as a string, nil otherwise."
+  (when (bufferp  buffer)
+    (with-current-buffer buffer default-directory)))
 
 ;; -----------------------------------------------------------------------------
 
