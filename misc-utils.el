@@ -38,11 +38,12 @@ file associated with them."
        (-filter #'bufferp)
        (-filter #'buffer-file-name)))
 
-(defun buffer-names-contain (fragment buffers)
+(defun buffer-names-containing (fragment buffers)
   "Returns a list of buffers whose names contain a string fragment."
   (->> buffers
        (-filter #'bufferp)
-       (-filter #'(lambda (x) (s-contains? fragment (buffer-name x))))))
+       (-filter #'(lambda (buffer) (s-contains? fragment (buffer-name buffer))))))
+
 
 
 ;; -----------------------------------------------------------------------------
