@@ -10,23 +10,42 @@
 ;; date:  2021-Mar-02
 ;; ------------------------------------------------------------------------------
 
-
-
 (defun -take-length (n xs)
   "After applying (take n xs) to the list, return the length of the list."
   (length (-take n xs)))
 
-(defun dired-get-marked-files-improved ()
+(defun dired-get-marked-files-improved (&optional localp arg filter)
   "Only gets the files that have been marked.
 `dired-get-marked-files' will return the file sitting under the
 cursor, even if there no mark character tagging it in the dired
-buffer."
-  (let ((marked-files (dired-get-marked-files nil nil nil t)))
+buffer. Passes the parameters other than
+DISTINGUISHED-ONE-MARKED; that one will always be true."
+  (let ((marked-files (dired-get-marked-files localp arg filter t)))
     (case (-take-length 3 marked-files)
       (3 marked-files)
-      (2 (or (let ((first (car marked-files))) (and (booleanp first) first (cdr marked-files)))
+      (2 (or (let ((first (car marked-files)))
+               (and (booleanp first)
+                    first
+                    (cdr marked-files)))
              marked-files)))))
 
+;; buffer and directory infomaton ----------------------------------------------
+
+(defun buffers-with-files (buffers)
+  "Given a list of buffers, returns just the ones that have a
+file associated with them."
+  (->> buffers
+       (-filter #'bufferp)
+       (-filter #'buffer-file-name)))
+
+(defun buffer-names-contain (fragment buffers)
+  "Returns a list of buffers whose names contain a string fragment."
+  (->> buffers
+       (-filter #'bufferp)
+       (-filter #'(lambda (x) (s-contains? fragment (buffer-name x))))))
+
+
+;; -----------------------------------------------------------------------------
 
 (provide 'misc-utils)
 
