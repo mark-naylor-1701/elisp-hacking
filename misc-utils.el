@@ -36,6 +36,7 @@ file associated with them."
        (-filter #'bufferp)
        (-filter #'buffer-file-name)))
 
+
 (defun buffer-names-containing (fragment buffers)
   "Returns a list of buffers whose names contain a string fragment."
   (let* ((has-fragment? (-partial #'s-contains? fragment))
@@ -96,9 +97,6 @@ are pdf documents."
   (interactive)
   (apply pdfunite (pdfunite-target))
   )
-  (->> buffers
-       (-filter #'bufferp)
-       (-filter #'(lambda (buffer) (s-contains? fragment (buffer-name buffer))))))
 
 (defun buffer-or-name? (buffer-or-name)
   "Is `buffer-or-name' either a buffer or a string?"
