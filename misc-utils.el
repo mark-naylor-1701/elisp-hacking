@@ -36,11 +36,14 @@ file associated with them."
        (-filter #'bufferp)
        (-filter #'buffer-file-name)))
 
+
 (defun buffer-names-containing (fragment buffers)
   "Returns a list of buffers whose names contain a string fragment."
-  (->> buffers
-       (-filter #'bufferp)
-       (-filter #'(lambda (buffer) (s-contains? fragment (buffer-name buffer))))))
+  (let* ((has-fragment? (-partial #'s-contains? fragment))
+         (name-contains? #'(lambda (buffer) (funcall has-fragment? (buffer-name buffer)))))
+    (->> buffers
+         (-filter #'bufferp)
+         (-filter name-contains?))))
 
 (defun buffer-or-name? (buffer-or-name)
   "Is `buffer-or-name' either a buffer or a string?"
