@@ -46,7 +46,7 @@ expression."
   (when  (search-forward-regexp regexp nil t)
     (if (non-comment-line?)
         (substring-no-properties (s-trim (cljr--extract-sexp)))
-      (callable-id))))
+      (callable-id regexp get-first?))))
 
 
 (defun defn-id (&optional get-first?)
