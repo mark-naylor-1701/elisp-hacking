@@ -108,6 +108,51 @@ are pdf documents."
   (when (bufferp  buffer)
     (with-current-buffer buffer default-directory)))
 
+
+(defun file-type (file &optional deref-symlinks)
+  "Return the type of FILE, according to the `file' command.
+If you give a prefix to this command, and FILE is a symbolic
+link, then the type of the file linked to by FILE is printed
+instead."
+  (interactive (list (dired-get-filename t) current-prefix-arg))
+  (let (process-file-side-effects)
+    (with-temp-buffer
+      (if deref-symlinks
+	  (process-file "file" nil t t "-L" "--" file)
+	(process-file "file" nil t t "--" file))
+      (when (bolp)
+	(backward-delete-char 1))
+      (buffer-string))))
+
+
+(defvar pdfunite
+  (-partial #'call-process "pdfunite" nil nil nil)
+  "Creates a pdfunite partial function. Relies on an operating
+  system process. Sets nil defaults for the optional
+  parameters,allowing calling function to just supply file
+  names.")
+
+(defun pdf? (file-name)
+  "Is the file associated with the name a PDF document?"
+  (s-contains? "PDF document" (file-type file-name)))
+
+(defun get-marked-pdf-files ()
+  "In a dired buffer, return a collection of marked files that
+are pdf documents."
+  (interactive)
+  (-filter #'pdf? (dired-get-marked-files-improved)))
+
+(defun pdfunite-target ()
+  (append (get-marked-pdf-files) (list "combined.pdf")))
+
+(defun crossword-combine ()
+  "Create the combined pdf."
+  (interactive)
+  (apply pdfunite (pdfunite-target))
+  )
+;; (-filter #'pdf? (dired-get-marked-files-improved))
+
+
 ;; -----------------------------------------------------------------------------
 
 (provide 'misc-utils)
