@@ -1,10 +1,24 @@
-;; author: Mark W. Naylor
+;;; text-decoration.el --- Various data and function definitions to
+;;; allow fancy applications to strings, such as bold, italics,
+;;; conversion of lowercase letters to/from small-caps, etc.
+
+;; Copyright (©) 2021 Mark W. Naylor
+
+;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
+;; Version: 0.9
+;; Package-Requires: ((emacs "26.0") (names "20180321.1155") (a "20201203.1927") (dash-functional "20201215.40"))
 ;; file:  text-decoration.el
 ;; date:  2020-Dec-21
 
 ;; Diacritical application
 
+(require 'names)
+(require 'a)
+(require 'dash-functional)
 (require 'subr-x)
+
+;; Begin namespace definition
+(define-namespace text-decoration:
 
 (defvar short-strike "̵")
 (defvar long-strike "̶")
@@ -21,93 +35,41 @@
       (mapc (lambda (pt) (goto-char pt) (insert decoration)) region)
       (goto-char (+ 2 (car region))))))
 
-(defun bold-ascii ()
-  "Makes the active region bold."
-  (interactive)
-  (ascii-decorate bold-char))
-
-(defun italics-ascii ()
-  "Makes the active region italics."
-  (interactive)
-  (ascii-decorate italics-char))
-
-(defun underline-ascii ()
-  "Makes the active region underlined."
-  (interactive)
-  (ascii-decorate underline-char))
-
-(defun bold-italics-ascii ()
-  "Makes the active region bold-italics."
-  (interactive)
-  (bold-ascii)
-  (italics-ascii))
-
+;; Decide where to put aliases ;;;;;;;;;
+;; Maybe make package comments as suggested mappings.
 (defalias 'borg 'bold-ascii)
 (defalias 'itrg 'italics-ascii)
 (defalias 'ulrg 'underline-ascii)
 (defalias 'birg 'bold-italics-ascii)
 
-(defun apply-diacritical (a-string mark)
-  (concat
-    (s-join mark
-            (butlast
-             (rest
-              (s-split "" a-string))))
-    mark))
+(defun apply-diacritical (str mark)
+  "Add the ASCII `mark' to the beginning and end of `str'."
+  (concat mark str mark))
 
-(defun strikethrough-string (a-string)
-  (apply-diacritical a-string long-strike))
+(defun strikethrough-string (str)
+  "Convert `str' to ASCII strikethrough."
+  (apply-diacritical str long-strike))
 
-(defun strikethrough-string-short (a-string)
-  (apply-diacritical a-string short-strike))
+(defun strikethrough-string-short (str)
+  "Convert `str' to ASCII strikethrough."
+  (apply-diacritical str short-strike))
 
-(defun underline-string (a-string)
-  (apply-diacritical a-string low-underline))
+(defun underline-string (str)
+  "Convert `str' to ASCII underline."
+  (apply-diacritical str low-underline))
 
-(defun double-underline-string (a-string)
-  (apply-diacritical a-string low-double-underline))
+(defun double-underline-string (str)
+  "Convert `str' to ASCII double underline."
+  (apply-diacritical str low-double-underline))
 
 (defun decorate-region (converter)
-  "docstring"
+  "Apply the supplied `converter' function to the string in the active buffer."
   (when-let ((_ (region-active-p))
              (start (region-beginning))
              (end (region-end))
              (src (funcall converter (buffer-substring start end))))
     (delete-region start end)
     (insert src)))
-
-(defun strikethrough-region ()
-  (interactive)
-  (decorate-region #'strikethrough-string))
-
-(defun short-strikethrough-region ()
-  (interactive)
-  (decorate-region #'short-strikethrough-region))
-
-
-(defun underline-region ()
-  (interactive)
-  (decorate-region #'underline-string))
-
-(defun double-underline-region ()
-  (interactive)
-  (decorate-region #'double-underline-string))
-
-(defun bold-region ()
-  "docstring"
-  (interactive)
-  (decorate-region #'bold-string))
-
-(defun italic-region ()
-  "docstring"
-  (interactive)
-  (decorate-region #'italic-string))
-
-(defun bold-italic-region ()
-  "docstring"
-  (interactive)
-  (decorate-region #'bold-italic-string))
-
 
 ;; Apply affects: bold, italic, bold-italic
 (defvar bold-A ?𝗔 "Base for bold character embellishments. All san-serif.")
@@ -123,88 +85,249 @@
 (defvar bold-italic-0 ?0 "Base for bold+italic character embellishments. All san-serif.")
 
 (defun c-numeric? (char)
+  "Is the character numeric?"
   (<= ?0 char ?9))
 
 (defun c-lowercase? (char)
+  "Is the `char' lowercase?"
   (<= ?a char ?z))
 
 (defun c-uppercase? (char)
+  "Is the `char' uppercase?"
   (<= ?A char ?Z))
 
-(defun bold-shift-upper-letter (a-char)
-  (+ a-char (- bold-A ?A)))
+(defun bold-upper-letter (char)
+  "Convert `char' to bold uppercase."
+  (+ char (- bold-A ?A)))
 
-(defun bold-shift-lower-letter (a-char)
-  (+ a-char (- bold-a ?a)))
+(defun bold-lower-letter (char)
+  "Convert `char' to bold lowercase."
+  (+ char (- bold-a ?a)))
 
-(defun bold-shift-numeral (a-char)
-  (+ a-char (- bold-0 ?0)))
+(defun bold-numeral (char)
+  "Convert `char' to bold numeral."
+  (+ char (- bold-0 ?0)))
 
-(defun italic-shift-upper-letter (a-char)
-  (+ a-char (- italic-A ?A)))
+(defun italic-upper-letter (char)
+  "Convert `char' to italic uppercase."
+  (+ char (- italic-A ?A)))
 
-(defun italic-shift-lower-letter (a-char)
-  (+ a-char (- italic-a ?a)))
+(defun italic-lower-letter (char)
+  "Convert `char' to italic lowercase."
+  (+ char (- italic-a ?a)))
 
-(defun italic-shift-numeral (a-char)
-  (+ a-char (- italic-0 ?0)))
+(defun italic-numeral (char)
+  "Convert `char' to italic numeral."
+  (+ char (- italic-0 ?0)))
 
-(defun bold-italic-shift-upper-letter (a-char)
-  (+ a-char (- bold-italic-A ?A)))
+(defun bold-italic-upper-letter (char)
+  "Convert `char' to bold italic uppercase."
+  (+ char (- bold-italic-A ?A)))
 
-(defun bold-italic-shift-lower-letter (a-char)
-  (+ a-char (- bold-italic-a ?a)))
+(defun bold-italic-lower-letter (char)
+  "Convert `char' to bold italic lowercase."
+  (+ char (- bold-italic-a ?a)))
 
-(defun bold-italic-shift-numeral (a-char)
-  (+ a-char (- bold-italic-0 ?0)))
+(defun bold-italic-numeral (char)
+  "Convert `char' to bold italic numeral."
+  (+ char (- bold-italic-0 ?0)))
 
-(defun bold-italic-char (a-char)
+(defun convert-char (char lower-fn upper-fn numeral-fn)
+  "Apply the appropriate conversion function to the `char'."
   (cond
-   ((c-lowercase? a-char) (bold-italic-shift-lower-letter a-char))
-   ((c-uppercase? a-char) (bold-italic-shift-upper-letter a-char))
-   ((c-numeric? a-char) (bold-italic-shift-numeral a-char))
-   (t a-char)))
+   ((c-lowercase? char) (funcall lower-fn char))
+   ((c-uppercase? char) (funcall upper-fn char))
+   ((c-numeric? char) (funcall numeral-fn char))
+   (t char)))
 
-(defun shift-char (a-char lower-shift-fn upper-shift-fn numeral-shift-fn)
-  (cond
-   ((c-lowercase? a-char) (funcall lower-shift-fn a-char))
-   ((c-uppercase? a-char) (funcall upper-shift-fn a-char))
-   ((c-numeric? a-char) (funcall numeral-shift-fn a-char))
-   (t a-char)))
+(defun bold-char (char)
+  "Convert `char' to bold."
+  (convert-char char
+                #'bold-lower-letter
+                #'bold-upper-letter
+                #'bold-numeral))
 
-(defun bold-char (a-char)
-  (shift-char a-char
-              #'bold-shift-lower-letter
-              #'bold-shift-upper-letter
-              #'bold-shift-numeral))
+(defun italic-char (char)
+  "Convert `char' to italic."
+  (convert-char char
+                #'italic-lower-letter
+                #'italic-upper-letter
+                #'italic-numeral))
 
-(defun italic-char (a-char)
-  (shift-char a-char
-              #'italic-shift-lower-letter
-              #'italic-shift-upper-letter
-              #'italic-shift-numeral))
+(defun bold-italic-char (char)
+  "Convert `char' to bold italic."
+  (convert-char char
+                #'bold-italic-lower-letter
+                #'bold-italic-upper-letter
+                #'bold-italic-numeral))
 
-(defun bold-italic-char (a-char)
-  (shift-char a-char
-              #'bold-italic-shift-lower-letter
-              #'bold-italic-shift-upper-letter
-              #'bold-italic-shift-numeral))
+(defun apply-affect (str convert-fn)
+  "Convert all the characters in `stp' by the `convert-fn' furction."
+  (concat (mapcar convert-fn str)))
+
+(defun bold-string (str)
+  "Convert `str' to bold characters."
+  (apply-affect str #'bold-char))
+
+(defun italic-string (str)
+  "Convert `str' to italic characters."
+  (apply-affect str #'italic-char))
+
+(defun bold-italic-string (str)
+  "Convert `str' to bold italic characters."
+  (apply-affect str #'bold-italic-char))
+
+;; Section for handling conversion to and from small capital letters
+;; -----------------------------------------------------------------
+(defvar small-caps (list '(?a . ?ᴀ) '(?b . ?ʙ) '(?c . ?ᴄ) '(?d . ?ᴅ) '(?e . ?ᴇ) '(?f . ?ꜰ)
+                         '(?g . ?ɢ) '(?h . ?ʜ) '(?i . ?ɪ) '(?j . ?ᴊ) '(?k . ?ᴋ) '(?l . ?ʟ)
+                         '(?m . ?ᴍ) '(?n . ?ɴ) '(?o . ?ᴏ) '(?p . ?ᴘ) '(?q . ?q) '(?r . ?ʀ)
+                         '(?s . ?ꜱ) '(?t . ?ᴛ) '(?u . ?ᴜ) '(?v . ?ᴠ) '(?w . ?ᴡ) '(?x . ?x)
+                         '(?y . ?ʏ) '(?z . ?ᴢ))
+
+"The data structue that drives the whole small capital letter
+conversion system. It's a mapping with unique domain and range,
+so lookups on values work as well as as for keys.")
+
+(defun lower-case<->small-caps (c converter)
+"Convert a character `c' to/from a small capital letter. Action
+based upon the supplied `converter' function.
+The fuction is of the form (f character look-up-association-list)"
+  ;; If an appropriate match for `c' is not found, return `c' instead.
+  (or (funcall converter c small-caps) c))
+
+;; Functions to be fed to lower-case<->small-caps. Encapsulates action taken upon a single
+;; character. Second function selectes the correct dotted pair from the list. The first
+;; function selects the correct element from the pair.
+
+(defvar char-to-smallcaps (-compose #'cdr #'assoc)
+"The key is the first element of the dotted pair, the lowercase
+letter. The match is the second element of the pair")
+
+(defvar char-to-lowercase (-compose #'car #'rassq)
+"The key is the second element of the dotted pair, the small
+capital letter. The match is the first element of the pair")
+
+(defun string->small-caps (s)
+"Convert the lowercase letters in the string to small capital
+letters."
+  (concat
+    (mapcar #'(lambda (c)
+                (lower-case<->small-caps c char-to-smallcaps) )
+            (string-to-list s))))
+
+(defun string->no-small-caps (s)
+"Convert the small capital letters in the string to lowercase
+letters."
+  (concat
+    (mapcar #'(lambda (c)
+                (lower-case<->small-caps c char-to-lowercase) )
+            (string-to-list s))))
 
 
+(defun region-convert (converter)
+"If a region is active, change all its letters using the
+`converter' function.."
+  (when (region-active-p)
+    (let* ((start (region-beginning))
+           (end (region-end))
+           (src (funcall converter (buffer-substring start end))))
+      (delete-region start end)
+      (goto-char start)
+      (insert src))))
 
-(defun apply-affect (a-string shift-fn)
-  (concat (mapcar shift-fn a-string)))
+(defvar vowels (a-list ?a ?α ?A ?Α
+                       ?e ?ε ?E ?Ε
+                       ?i ?ι ?I ?Ι
+                       ?o ?ο ?O ?Ο
+                       ?u ?υ ?U ?Υ)
+  "Convertion table of Latin vowels to Greek.")
 
-(defun bold-string (a-string)
-   (apply-affect a-string #'bold-char))
+(defun greekify-char (char)
+  (or
+   (a-get vowels char)
+   char))
 
-(defun italic-string (a-string)
-   (apply-affect a-string #'italic-char))
-
-(defun bold-italic-string (a-string)
-   (apply-affect a-string #'bold-italic-char))
+(defun greekify-string (str)
+  (concat (mapcar #'greekify-char str)))
 
 
+) ;; End of the namespace definition.
+
+;; Public Area ;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun bold-ascii ()
+  "Makes the active region bold."
+  (interactive)
+  (text-decoration:ascii-decorate text-decoration:bold-char))
+
+(defun italics-ascii ()
+  "Makes the active region italics."
+  (interactive)
+  (text-decoration:ascii-decorate text-decoration:italics-char))
+
+(defun underline-ascii ()
+  "Makes the active region underlined."
+  (interactive)
+  (text-decoration:ascii-decorate text-decoration:underline-char))
+
+(defun bold-italics-ascii ()
+  "Makes the active region bold-italics."
+  (interactive)
+  (bold-ascii)
+  (italics-ascii))
+
+(defun strikethrough-region ()
+  "Makes the active region strikethrough."
+  (interactive)
+  (text-decoration:decorate-region #'text-decoration:strikethrough-string))
+
+(defun short-strikethrough-region ()
+  "Makes the active region short strikethrough."
+  (interactive)
+  (text-decoration:decorate-region #'text-decoration:strikethrough-string-short))
+
+(defun underline-region ()
+  "Makes the active region underlined."
+  (interactive)
+  (text-decoration:decorate-region #'text-decoration:underline-string))
+
+(defun double-underline-region ()
+  "Makes the active region double underlined."
+  (interactive)
+  (text-decoration:decorate-region #'text-decoration:double-underline-string))
+
+(defun bold-region ()
+  "Makes the active region bold."
+  (interactive)
+  (text-decoration:decorate-region #'text-decoration:bold-string))
+
+(defun italic-region ()
+  "Makes the active region italics."
+  (interactive)
+  (text-decoration:decorate-region #'text-decoration:italic-string))
+
+(defun bold-italic-region ()
+  "Makes the active region bold italics."
+  (interactive)
+  (text-decoration:decorate-region #'text-decoration:bold-italic-string))
+
+(defun region-smallcaps ()
+  "Turn all lowercase letters in a selected region to small capitals."
+  (interactive)
+  (text-decoration:region-convert #'text-decoration:string->small-caps))
+
+(defun region-nosmallcaps ()
+  "Turn all lowercase letters in a selected region to small capitals."
+  (interactive)
+  (text-decoration:region-convert #'text-decoration:string->no-small-caps))
+
+(defun greekify-region ()
+  "Convert all Latin vowels in the selected region to Greek vowels."
+  (interactive)
+  (text-decoration:region-convert #'text-decoration:greekify-string))
+
+(provide 'text-decoration)
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
 
@@ -235,3 +358,6 @@
 ;; CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 ;; OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+;;; text-decoration.el ends here
