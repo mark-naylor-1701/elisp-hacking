@@ -36,7 +36,6 @@ file associated with them."
        (-filter #'bufferp)
        (-filter #'buffer-file-name)))
 
-
 (defun buffer-names-containing (fragment buffers)
   "Returns a list of buffers whose names contain a string fragment."
   (let* ((has-fragment? (-partial #'s-contains? fragment))
@@ -98,7 +97,9 @@ are pdf documents."
   (apply pdfunite (pdfunite-target))
   )
 ;; (-filter #'pdf? (dired-get-marked-files-improved))
-
+  (->> buffers
+       (-filter #'bufferp)
+       (-filter #'(lambda (buffer) (s-contains? fragment (buffer-name buffer))))))
 
 ;; -----------------------------------------------------------------------------
 
