@@ -1,4 +1,4 @@
-;;; crossword.el --- Functions to manange crossword puzzle merging and print tracking.
+;;; crossword-merge-util.el --- Functions to manange crossword puzzle merging and print tracking.
 
 ;; Copyright (©) 2021 Mark W. Naylor
 
@@ -51,7 +51,7 @@ name removed if in the collection."
     (kill-buffer working)
     (switch-to-buffer src-buffer)))
 
-(provide 'crossword)
+(provide 'crossword-merge-util)
 
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
@@ -85,4 +85,4 @@ name removed if in the collection."
 ;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-;;; crossword.el ends here
+;;; crossword-merge-util.el ends here
