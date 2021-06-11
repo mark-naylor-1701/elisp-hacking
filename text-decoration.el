@@ -43,27 +43,27 @@
 (defalias 'birg 'bold-italics-ascii)
 
 (defun apply-diacritical (str mark)
-  "Add the ASCII `mark' to the beginning and end of `str'."
+  "Add the ASCII `MARK' to the beginning and end of `STR'."
   (concat mark str mark))
 
 (defun strikethrough-string (str)
-  "Convert `str' to ASCII strikethrough."
+  "Convert `STR' to ASCII strikethrough."
   (apply-diacritical str long-strike))
 
 (defun strikethrough-string-short (str)
-  "Convert `str' to ASCII strikethrough."
+  "Convert `STR' to ASCII strikethrough."
   (apply-diacritical str short-strike))
 
 (defun underline-string (str)
-  "Convert `str' to ASCII underline."
+  "Convert `STR' to ASCII underline."
   (apply-diacritical str low-underline))
 
 (defun double-underline-string (str)
-  "Convert `str' to ASCII double underline."
+  "Convert `STR' to ASCII double underline."
   (apply-diacritical str low-double-underline))
 
 (defun decorate-region (converter)
-  "Apply the supplied `converter' function to the string in the active buffer."
+  "Apply the supplied `CONVERTER' function to the string in the active buffer."
   (when-let ((_ (region-active-p))
              (start (region-beginning))
              (end (region-end))
@@ -89,51 +89,51 @@
   (<= ?0 char ?9))
 
 (defun c-lowercase? (char)
-  "Is the `char' lowercase?"
+  "Is the `CHAR' lowercase?"
   (<= ?a char ?z))
 
 (defun c-uppercase? (char)
-  "Is the `char' uppercase?"
+  "Is the `CHAR' uppercase?"
   (<= ?A char ?Z))
 
 (defun bold-upper-letter (char)
-  "Convert `char' to bold uppercase."
+  "Convert `CHAR' to bold uppercase."
   (+ char (- bold-A ?A)))
 
 (defun bold-lower-letter (char)
-  "Convert `char' to bold lowercase."
+  "Convert `CHAR' to bold lowercase."
   (+ char (- bold-a ?a)))
 
 (defun bold-numeral (char)
-  "Convert `char' to bold numeral."
+  "Convert `CHAR' to bold numeral."
   (+ char (- bold-0 ?0)))
 
 (defun italic-upper-letter (char)
-  "Convert `char' to italic uppercase."
+  "Convert `CHAR' to italic uppercase."
   (+ char (- italic-A ?A)))
 
 (defun italic-lower-letter (char)
-  "Convert `char' to italic lowercase."
+  "Convert `CHAR' to italic lowercase."
   (+ char (- italic-a ?a)))
 
 (defun italic-numeral (char)
-  "Convert `char' to italic numeral."
+  "Convert `CHAR' to italic numeral."
   (+ char (- italic-0 ?0)))
 
 (defun bold-italic-upper-letter (char)
-  "Convert `char' to bold italic uppercase."
+  "Convert `CHAR' to bold italic uppercase."
   (+ char (- bold-italic-A ?A)))
 
 (defun bold-italic-lower-letter (char)
-  "Convert `char' to bold italic lowercase."
+  "Convert `CHAR' to bold italic lowercase."
   (+ char (- bold-italic-a ?a)))
 
 (defun bold-italic-numeral (char)
-  "Convert `char' to bold italic numeral."
+  "Convert `CHAR' to bold italic numeral."
   (+ char (- bold-italic-0 ?0)))
 
 (defun convert-char (char lower-fn upper-fn numeral-fn)
-  "Apply the appropriate conversion function to the `char'."
+  "Apply the appropriate conversion function to the `CHAR'."
   (cond
    ((c-lowercase? char) (funcall lower-fn char))
    ((c-uppercase? char) (funcall upper-fn char))
@@ -141,40 +141,40 @@
    (t char)))
 
 (defun bold-char (char)
-  "Convert `char' to bold."
+  "Convert `CHAR' to bold."
   (convert-char char
                 #'bold-lower-letter
                 #'bold-upper-letter
                 #'bold-numeral))
 
 (defun italic-char (char)
-  "Convert `char' to italic."
+  "Convert `CHAR' to italic."
   (convert-char char
                 #'italic-lower-letter
                 #'italic-upper-letter
                 #'italic-numeral))
 
 (defun bold-italic-char (char)
-  "Convert `char' to bold italic."
+  "Convert `CHAR' to bold italic."
   (convert-char char
                 #'bold-italic-lower-letter
                 #'bold-italic-upper-letter
                 #'bold-italic-numeral))
 
-(defun apply-affect (str convert-fn)
-  "Convert all the characters in `stp' by the `convert-fn' furction."
-  (concat (mapcar convert-fn str)))
+(defun apply-affect (str converter)
+  "Convert all the characters in `STR' by the `CONVERTER' function."
+  (concat (mapcar converter str)))
 
 (defun bold-string (str)
-  "Convert `str' to bold characters."
+  "Convert `STR' to bold characters."
   (apply-affect str #'bold-char))
 
 (defun italic-string (str)
-  "Convert `str' to italic characters."
+  "Convert `STR' to italic characters."
   (apply-affect str #'italic-char))
 
 (defun bold-italic-string (str)
-  "Convert `str' to bold italic characters."
+  "Convert `STR' to bold italic characters."
   (apply-affect str #'bold-italic-char))
 
 ;; Section for handling conversion to and from small capital letters
@@ -189,12 +189,12 @@
 conversion system. It's a mapping with unique domain and range,
 so lookups on values work as well as as for keys.")
 
-(defun lower-case<->small-caps (c converter)
-"Convert a character `c' to/from a small capital letter. Action
-based upon the supplied `converter' function.
+(defun lower-case<->small-caps (char converter)
+"Convert a character `CHAR' to/from a small capital letter. Action
+based upon the supplied `CONVERTER' function.
 The fuction is of the form (f character look-up-association-list)"
-  ;; If an appropriate match for `c' is not found, return `c' instead.
-  (or (funcall converter c small-caps) c))
+  ;; If an appropriate match for `CHAR' is not found, return `CHAR' instead.
+  (or (funcall converter char small-caps) char))
 
 ;; Functions to be fed to lower-case<->small-caps. Encapsulates action taken upon a single
 ;; character. Second function selectes the correct dotted pair from the list. The first
@@ -208,33 +208,36 @@ letter. The match is the second element of the pair")
 "The key is the second element of the dotted pair, the small
 capital letter. The match is the first element of the pair")
 
-(defun string->small-caps (s)
+(defun string->small-caps (str)
 "Convert the lowercase letters in the string to small capital
 letters."
   (concat
-    (mapcar #'(lambda (c)
-                (lower-case<->small-caps c char-to-smallcaps) )
-            (string-to-list s))))
+    (mapcar #'(lambda (char)
+                (lower-case<->small-caps char char-to-smallcaps) )
+            (string-to-list str))))
 
-(defun string->no-small-caps (s)
+(defun string->no-small-caps (str)
 "Convert the small capital letters in the string to lowercase
 letters."
   (concat
-    (mapcar #'(lambda (c)
-                (lower-case<->small-caps c char-to-lowercase) )
-            (string-to-list s))))
+    (mapcar #'(lambda (char)
+                (lower-case<->small-caps char char-to-lowercase) )
+            (string-to-list str))))
 
 
-(defun region-convert (converter)
+(defun region-convert (string-converter)
 "If a region is active, change all its letters using the
-`converter' function.."
+`STRING-CONVERTER' function."
   (when (region-active-p)
     (let* ((start (region-beginning))
            (end (region-end))
-           (src (funcall converter (buffer-substring start end))))
+           (src (funcall string-converter (buffer-substring start end))))
       (delete-region start end)
       (goto-char start)
-      (insert src))))
+      (insert src)
+      ;; Since `INSERT' returns nil, force to t when successfully
+      ;; reaching this point in the conversion process.
+      t)))
 
 (defvar vowels (a-list ?a ?α ?A ?Α
                        ?e ?ε ?E ?Ε
