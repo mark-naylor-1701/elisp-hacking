@@ -10,7 +10,7 @@
 
 ;; find-and-mark test section ;;;;;;;;;;
 (defvar matching-text
-  "This buffer has target word\n money\n ")
+  "This buffer has target word\nmoney\nmoney\nmoney\nmoney\n")
 
 (defvar non-matching-text
   "This buffer does not have the target word\n\n ")
@@ -51,8 +51,30 @@
      (should (equal
               (find-and-mark "money")
               t))))
+  (matching-fixture
+   (lambda ()
+     (should (equal
+              (find-and-mark "bu..er")
+              t))))
   (non-matching-fixture
    (lambda ()
      (should (equal
               (find-and-mark "money")
               nil)))))
+
+(ert-deftest transform-from-point-test ()
+  (matching-fixture
+   (lambda ()
+     (should (equal
+              (transform-from-point #'greekify-region "money")
+              4))))
+  (matching-fixture
+   (lambda ()
+     (should (equal
+              (transform-from-point #'greekify-region "money" 2)
+              2))))
+  (non-matching-fixture
+   (lambda ()
+     (should (equal
+              (transform-from-point #'greekify-region "money")
+              0)))))

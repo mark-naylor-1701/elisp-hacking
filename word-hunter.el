@@ -1,11 +1,23 @@
+;;; word-hunter.el --- Utility for finding and replacing strings.
+
+;; Copyright (©) 2021 Mark W. Naylor
+
+;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
+;; Version: 0.9
+;; Package-Requires: ((emacs "26.0") (names "20180321.1155"))
+;; Keywords: foo bar baz
+;; URL: http://example.com/jrhacker/superfrobnicate
 ;; author: Mark W. Naylor
 ;; file:  word-hunter.el
 ;; date:  2021-Jun-10
 
+(require 'names)
+
+(define-namespace word-hunter:
+
 (defun wrap-word-bounds (target)
   "Turn a string or regexp into a regexp that matches beginning and end word boundaries."
   (concat "\\<" target "\\>"))
-
 
 (defun find-and-mark (target)
   "If a word matches the regexp, set it to the active region."
@@ -14,7 +26,32 @@
     (search-backward-regexp "\\<")
     t))
 
+(defun transform-from-point (modifier target &optional max-transforms)
+  "Apply `MODIFIER' to all (or at most `MAX-TRANSFORMS')
+  instances of `TARGET' starting from the current point in the
+  bubuffer. `MODIFIER' is a function that changes the active
+  region. Returns the count of strings changed."
 
+  (cl-labels
+      ((-transform (count region-selected?)
+         (cond
+          ((or (null region-selected?)
+               (and (not (null max-transforms))
+                    (>= count max-transforms)))
+           count)
+          (t (progn
+               (funcall modifier)
+               (-transform (1+ count) (find-and-mark target))))
+          )))
+    (-transform 0 (find-and-mark target)))))
+
+(defun transform-in-buffer (modifier target &optional max-transforms)
+  "Go to beginning of buffer and apply `TRANSFORM-FROM-POINT.'"
+  (save-excursion
+    (goto-char (point-min))
+    (word-hunter:transform-from-point modifier target max-transforms)))
+
+(provide 'word-hunter)
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
 
@@ -45,3 +82,6 @@
 ;; CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 ;; OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+;;; word-hunter.el ends here
