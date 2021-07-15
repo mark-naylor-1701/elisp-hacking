@@ -10,6 +10,8 @@
 ;; file:  text-decoration.el
 ;; date:  2020-Dec-21
 
+;;; Commentary:
+
 ;; Diacritical application
 
 (require 'names)
@@ -43,27 +45,27 @@
 (defalias 'birg 'bold-italics-ascii)
 
 (defun apply-diacritical (str mark)
-  "Add the ASCII `MARK' to the beginning and end of `STR'."
+  "Add the ASCII `mark' to the beginning and end of `str'."
   (concat mark str mark))
 
 (defun ascii-strikethrough-string (str)
-  "Convert `STR' to ASCII strikethrough."
+  "Convert `str' to ASCII strikethrough."
   (apply-diacritical str long-strike))
 
 (defun ascii-strikethrough-string-short (str)
-  "Convert `STR' to ASCII strikethrough."
+  "Convert `str' to ASCII strikethrough."
   (apply-diacritical str short-strike))
 
 (defun underline-string (str)
-  "Convert `STR' to ASCII underline."
+  "Convert `str' to ASCII underline."
   (apply-diacritical str low-underline))
 
 (defun double-underline-string (str)
-  "Convert `STR' to ASCII double underline."
+  "Convert `str' to ASCII double underline."
   (apply-diacritical str low-double-underline))
 
 (defun decorate-region (converter)
-  "Apply the supplied `CONVERTER' function to the string in the active buffer."
+  "Apply the supplied `converter' function to the string in the active buffer."
   (when-let ((_ (region-active-p))
              (start (region-beginning))
              (end (region-end))
@@ -98,50 +100,51 @@
   (<= ?0 char ?9))
 
 (defun c-lowercase? (char)
-  "Is the `CHAR' lowercase?"
+  "Is the `char' lowercase?"
   (<= ?a char ?z))
 
 (defun c-uppercase? (char)
-  "Is the `CHAR' uppercase?"
+  "Is the `char' uppercase?"
   (<= ?A char ?Z))
 
 (defun bold-upper-letter (char)
-  "Convert `CHAR' to bold uppercase."
+  "Convert `char' to bold uppercase."
   (+ char (- bold-A ?A)))
 
 (defun bold-lower-letter (char)
-  "Convert `CHAR' to bold lowercase."
+  "Convert `char' to bold lowercase."
   (+ char (- bold-a ?a)))
 
 (defun bold-numeral (char)
-  "Convert `CHAR' to bold numeral."
+  "Convert `char' to bold numeral."
   (+ char (- bold-0 ?0)))
 
 (defun italic-upper-letter (char)
-  "Convert `CHAR' to italic uppercase."
+  "Convert `char' to italic uppercase."
   (+ char (- italic-A ?A)))
 
 (defun italic-lower-letter (char)
-  "Convert `CHAR' to italic lowercase."
+  "Convert `char' to italic lowercase."
   (+ char (- italic-a ?a)))
 
 (defun italic-numeral (char)
-  "Convert `CHAR' to italic numeral."
+  "Convert `char' to italic numeral."
   (+ char (- italic-0 ?0)))
 
 (defun bold-italic-upper-letter (char)
-  "Convert `CHAR' to bold italic uppercase."
+  "Convert `char' to bold italic uppercase."
   (+ char (- bold-italic-A ?A)))
 
 (defun bold-italic-lower-letter (char)
-  "Convert `CHAR' to bold italic lowercase."
+  "Convert `char' to bold italic lowercase."
   (+ char (- bold-italic-a ?a)))
 
 (defun bold-italic-numeral (char)
-  "Convert `CHAR' to bold italic numeral."
+  "Convert `char' to bold italic numeral."
   (+ char (- bold-italic-0 ?0)))
 
 (defun alter-char (code char)
+  "Append a Unicode character to a character if not a whitespace. Return result as a string."
   (if (funcall not-whitespace? char)
       (string char code)
     (string char)))
@@ -150,13 +153,15 @@
 (defvar underline-char (-partial #'alter-char underline-code))
 
 (defun strikethrough-string (str)
+  "Make all non whitespace character Unicode strikethrough charaters."
   (apply #'concat (mapcar strikethrough-char str)))
 
 (defun underline-string (str)
+  "Make all non whitespace character Unicode underline charaters."
   (apply #'concat (mapcar underline-char str)))
 
 (defun convert-char (char lower-fn upper-fn numeral-fn)
-  "Apply the appropriate conversion function to the `CHAR'."
+  "Apply the appropriate conversion function to the `char'."
   (cond
    ((c-lowercase? char) (funcall lower-fn char))
    ((c-uppercase? char) (funcall upper-fn char))
@@ -164,40 +169,40 @@
    (t char)))
 
 (defun bold-char (char)
-  "Convert `CHAR' to bold."
+  "Convert `char' to bold."
   (convert-char char
                 #'bold-lower-letter
                 #'bold-upper-letter
                 #'bold-numeral))
 
 (defun italic-char (char)
-  "Convert `CHAR' to italic."
+  "Convert `char' to italic."
   (convert-char char
                 #'italic-lower-letter
                 #'italic-upper-letter
                 #'italic-numeral))
 
 (defun bold-italic-char (char)
-  "Convert `CHAR' to bold italic."
+  "Convert `char' to bold italic."
   (convert-char char
                 #'bold-italic-lower-letter
                 #'bold-italic-upper-letter
                 #'bold-italic-numeral))
 
 (defun apply-affect (str converter)
-  "Convert all the characters in `STR' by the `CONVERTER' function."
+  "Convert all the characters in `str' by the `converter' function."
   (concat (mapcar converter str)))
 
 (defun bold-string (str)
-  "Convert `STR' to bold characters."
+  "Convert `str' to bold characters."
   (apply-affect str #'bold-char))
 
 (defun italic-string (str)
-  "Convert `STR' to italic characters."
+  "Convert `str' to italic characters."
   (apply-affect str #'italic-char))
 
 (defun bold-italic-string (str)
-  "Convert `STR' to bold italic characters."
+  "Convert `str' to bold italic characters."
   (apply-affect str #'bold-italic-char))
 
 ;; Section for handling conversion to and from small capital letters
@@ -213,10 +218,10 @@ conversion system. It's a mapping with unique domain and range,
 so lookups on values work as well as as for keys.")
 
 (defun lower-case<->small-caps (char converter)
-"Convert a character `CHAR' to/from a small capital letter. Action
-based upon the supplied `CONVERTER' function.
+"Convert a character `char' to/from a small capital letter. Action
+based upon the supplied `converter' function.
 The fuction is of the form (f character look-up-association-list)"
-  ;; If an appropriate match for `CHAR' is not found, return `CHAR' instead.
+  ;; If an appropriate match for `char' is not found, return `char' instead.
   (or (funcall converter char small-caps) char))
 
 ;; Functions to be fed to lower-case<->small-caps. Encapsulates action taken upon a single
@@ -250,7 +255,7 @@ letters."
 
 (defun region-convert (string-converter)
 "If a region is active, change all its letters using the
-`STRING-CONVERTER' function."
+`string-converter' function."
   (when (region-active-p)
     (let* ((start (region-beginning))
            (end (region-end))
@@ -258,7 +263,7 @@ letters."
       (delete-region start end)
       (goto-char start)
       (insert src)
-      ;; Since `INSERT' returns nil, force to t when successfully
+      ;; Since `insert' returns nil, force to t when successfully
       ;; reaching this point in the conversion process.
       t)))
 
@@ -270,13 +275,55 @@ letters."
   "Convertion table of Latin vowels to Greek.")
 
 (defun greekify-char (char)
+  "Return a Greek chararter if `char' is a Latin vowel, `char' otherwise."
   (or
    (a-get vowels char)
    char))
 
+(defun ungreekify-char (char)
+  "Return a Latin chararter if `char' is a Greek vowel, `char' otherwise."
+  (or (->> vowels (rassoc char) first)
+      char))
+
 (defun greekify-string (str)
+  "Convert all Greek vowels to Latin vowels in a string."
   (concat (mapcar #'greekify-char str)))
 
+(defun ungreekify-string (str)
+  "Convert all Latin vowels to Greek vowels in a string."
+  (concat (mapcar #'ungreekify-char str)))
+
+(defun bol-point ()
+  "Return the point of the beginning of the current line."
+  (save-excursion
+    (move-beginning-of-line nil)
+    (point)))
+
+(defun eol-point ()
+  "Return the point of the end of the current line."
+  (save-excursion
+    (move-end-of-line nil)
+    (point)))
+
+(defun find-greek-vowel ()
+  "Move the point to the next Greek vowel, if any."
+  (search-forward-regexp "[αΑεΕιΙοΟυΥ]" nil t))
+
+(defun forward-blank-punct ()
+  "Move the point the next character that is either whitespace or
+a punctuation character, if any. Otherwise, move to end of the
+line."
+  (or
+   (search-forward-regexp "[[:blank:][:punct:]]" (eol-point) t)
+   (move-end-of-line nil)))
+
+(defun backward-blank-punct ()
+  "Move the point the previous character that is either
+whitespace or a punctuation character, if any. Otherwise, move to
+beginning of the line."
+  (or
+   (search-backward-regexp "[[:blank:][:punct:]]" (bol-point) t)
+   (move-beginning-of-line nil)))
 
 ) ;; End of the namespace definition.
 
@@ -357,6 +404,47 @@ letters."
   "Convert all Latin vowels in the selected region to Greek vowels."
   (interactive)
   (text-decoration:region-convert #'text-decoration:greekify-string))
+
+(defun ungreekify-region ()
+  "Covert all Greek vowels in the selected regoin to Latin vowels."
+  (interactive)
+  (text-decoration:region-convert #'text-decoration:ungreekify-string))
+
+(defun ungreekify-buffer ()
+  "Convert all Greek vowels in the buffer to Latin vowels."
+  (interactive)
+  (save-excursion
+    (mark-whole-buffer)
+    (ungreekify-region)))
+
+(defun mark-word-greek-vowel ()
+  "Search forward for the next Greek vowel. If found, make the
+word that contains it the active region. Word boundaries
+determined by whitespace, punctuation, beginning of line, or end
+of line."
+  (when (text-decoration:find-greek-vowel)
+    (text-decoration:backward-blank-punct)
+    (set-mark (point))
+    (text-decoration:forward-blank-punct)
+    (region-bounds)))
+
+(defun string-regions (searcher)
+  "Generate a stack of regions that meet the criteria defined by
+`searcher'. `searcher' is a function that locates a string, marks
+it as the current region, and returns its region bounds. Return
+matches `region-bounds'. The stack will have the last region in
+the buffer as its head."
+  (cl-labels
+      ((-string-regions
+        (acc)
+        (cond
+         ((when-let ((bounds (funcall searcher))) (-string-regions (cons (first bounds) acc))))
+         (:else acc))))
+    (-string-regions ())))
+
+(defun greekified-regions ()
+  "Return a list of all regions the have words with Greek vowels."
+  (string-regions #'mark-word-greek-vowel))
 
 (provide 'text-decoration)
 ;; ------------------------------------------------------------------------------
