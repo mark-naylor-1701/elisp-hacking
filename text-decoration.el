@@ -274,6 +274,10 @@ letters."
    (a-get vowels char)
    char))
 
+(defun ungreekify-char (char)
+  (or (->> vowels (rassoc char) first)
+      char))
+
 (defun greekify-string (str)
   (concat (mapcar #'greekify-char str)))
 

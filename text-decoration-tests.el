@@ -2,7 +2,9 @@
 ;; file:  text-decoration-texts.el
 ;; date:  2021-Jul-15
 
-
+(ert-deftest ungreekify-char-test ()
+  (should (equal ?i (text-decoration:ungreekify-char ?ι)))
+  (should (equal ?L (text-decoration:ungreekify-char ?L))))
 
 
 ;; ------------------------------------------------------------------------------
