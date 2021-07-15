@@ -26,7 +26,7 @@
 (defvar low-double-underline "̳")
 (defvar bold-char "*")
 (defvar italics-char "/")
-(defvar underline-char "_")
+(defvar underline "_")
 
 (defun ascii-decorate (decoration)
   "Surrounds an active region with the supplied string."
@@ -46,11 +46,11 @@
   "Add the ASCII `MARK' to the beginning and end of `STR'."
   (concat mark str mark))
 
-(defun strikethrough-string (str)
+(defun ascii-strikethrough-string (str)
   "Convert `STR' to ASCII strikethrough."
   (apply-diacritical str long-strike))
 
-(defun strikethrough-string-short (str)
+(defun ascii-strikethrough-string-short (str)
   "Convert `STR' to ASCII strikethrough."
   (apply-diacritical str short-strike))
 
@@ -83,6 +83,15 @@
 (defvar bold-0 ?𝟬 "Base for bold character embellishments. All san-serif.")
 (defvar italic-0 ?0 "Base for italic character embellishments. All san-serif.")
 (defvar bold-italic-0 ?0 "Base for bold+italic character embellishments. All san-serif.")
+
+(defvar strikethrough-code #x0336)
+(defvar underline-code #x0332)
+
+(defun whitespace? (char)
+  (when (integerp char)
+    (string-match "[[:blank:]]+" (string char))))
+
+(defvar not-whitespace? (-compose #'not #'whitespace?))
 
 (defun c-numeric? (char)
   "Is the character numeric?"
@@ -131,6 +140,20 @@
 (defun bold-italic-numeral (char)
   "Convert `CHAR' to bold italic numeral."
   (+ char (- bold-italic-0 ?0)))
+
+(defun alter-char (code char)
+  (if (funcall not-whitespace? char)
+      (string char code)
+    (string char)))
+
+(defvar strikethrough-char (-partial #'alter-char strikethrough-code))
+(defvar underline-char (-partial #'alter-char underline-code))
+
+(defun strikethrough-string (str)
+  (apply #'concat (mapcar strikethrough-char str)))
+
+(defun underline-string (str)
+  (apply #'concat (mapcar underline-char str)))
 
 (defun convert-char (char lower-fn upper-fn numeral-fn)
   "Apply the appropriate conversion function to the `CHAR'."
@@ -272,7 +295,7 @@ letters."
 (defun underline-ascii ()
   "Makes the active region underlined."
   (interactive)
-  (text-decoration:ascii-decorate text-decoration:underline-char))
+  (text-decoration:ascii-decorate text-decoration:underline))
 
 (defun bold-italics-ascii ()
   "Makes the active region bold-italics."
@@ -285,10 +308,15 @@ letters."
   (interactive)
   (text-decoration:decorate-region #'text-decoration:strikethrough-string))
 
+(defun underline-region ()
+  "Makes the active region strikethrough."
+  (interactive)
+  (text-decoration:decorate-region #'text-decoration:underline-string))
+
 (defun short-strikethrough-region ()
   "Makes the active region short strikethrough."
   (interactive)
-  (text-decoration:decorate-region #'text-decoration:strikethrough-string-short))
+  (text-decoration:decorate-region #'text-decoration:ascii-strikethrough-string-short))
 
 (defun underline-region ()
   "Makes the active region underlined."
