@@ -56,7 +56,7 @@
   "Convert `str' to ASCII strikethrough."
   (apply-diacritical str short-strike))
 
-(defun underline-string (str)
+(defun ascii-underline-string (str)
   "Convert `str' to ASCII underline."
   (apply-diacritical str low-underline))
 
@@ -282,7 +282,7 @@ letters."
 
 (defun ungreekify-char (char)
   "Return a Latin chararter if `char' is a Greek vowel, `char' otherwise."
-  (or (->> vowels (rassoc char) first)
+  (or (->> vowels (rassoc char) car)
       char))
 
 (defun greekify-string (str)
@@ -355,11 +355,6 @@ beginning of the line."
   (interactive)
   (text-decoration:decorate-region #'text-decoration:strikethrough-string))
 
-(defun underline-region ()
-  "Makes the active region strikethrough."
-  (interactive)
-  (text-decoration:decorate-region #'text-decoration:underline-string))
-
 (defun short-strikethrough-region ()
   "Makes the active region short strikethrough."
   (interactive)
@@ -414,7 +409,8 @@ beginning of the line."
   "Convert all Greek vowels in the buffer to Latin vowels."
   (interactive)
   (save-excursion
-    (mark-whole-buffer)
+    (set-mark 1)
+    (goto-char (point-max))
     (ungreekify-region)))
 
 (defun mark-word-greek-vowel ()
@@ -438,7 +434,7 @@ the buffer as its head."
       ((-string-regions
         (acc)
         (cond
-         ((when-let ((bounds (funcall searcher))) (-string-regions (cons (first bounds) acc))))
+         ((when-let ((bounds (funcall searcher))) (-string-regions (cons (car bounds) acc))))
          (:else acc))))
     (-string-regions ())))
 
