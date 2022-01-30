@@ -293,6 +293,19 @@ letters."
   "Convert all Latin vowels to Greek vowels in a string."
   (concat (mapcar #'ungreekify-char str)))
 
+(defun split-join (str split-str join-str)
+  "Split a string with one character, join it with another."
+  (s-join join-str
+          (s-split split-str str t)))
+
+(defun unspreadify-string (str)
+  "Remove asterisks from a spread string."
+  (split-join str "*" ""))
+
+(defun spreadify-string (str)
+  "Spread a plain string apart with asteriks."
+  (split-join str "" "*"))
+
 (defun bol-point ()
   "Return the point of the beginning of the current line."
   (save-excursion
@@ -401,7 +414,7 @@ beginning of the line."
   (text-decoration:region-convert #'text-decoration:greekify-string))
 
 (defun ungreekify-region ()
-  "Covert all Greek vowels in the selected regoin to Latin vowels."
+  "Convert all Greek vowels in the selected region to Latin vowels."
   (interactive)
   (text-decoration:region-convert #'text-decoration:ungreekify-string))
 
