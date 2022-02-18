@@ -2,6 +2,25 @@
 ;; file:  unbinding.el
 ;; date:  2022-Feb-18
 
+;; Private variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun unbinding--build-re (s)
+  "Helper function. Used to contruct search regular expressions."
+  (concat
+   "("
+   unbinding--optional-whitespace
+   s
+   unbinding--optional-whitespace))
+
+(defvar unbinding--optional-whitespace "[[:space:]]*")
+
+(defvar unbinding--defvar-re
+  (unbinding--build-re "defvar")
+  "Expression used to locate variable definitions.")
+
+(defvar unbinding--defun-re
+  (unbinding--build-re "defun")
+  "Expression used to locate functon definitions.")
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
 
