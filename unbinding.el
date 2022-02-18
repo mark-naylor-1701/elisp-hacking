@@ -4,15 +4,16 @@
 
 ;; Private variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar unbinding--optional-whitespace "[[:space:]]*")
+(defvar unbinding--required-whitespace "[[:space:]]+")
+
 (defun unbinding--build-re (s)
   "Helper function. Used to contruct search regular expressions."
   (concat
    "("
    unbinding--optional-whitespace
    s
-   unbinding--optional-whitespace))
-
-(defvar unbinding--optional-whitespace "[[:space:]]*")
+   unbinding--required-whitespace))
 
 (defvar unbinding--defvar-re
   (unbinding--build-re "defvar")
@@ -21,6 +22,15 @@
 (defvar unbinding--defun-re
   (unbinding--build-re "defun")
   "Expression used to locate functon definitions.")
+
+;; Private function definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun unbinding--defvars ()
+  "Collect all the defvar symbols in the current buffer."
+
+  )
+
+
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
 
