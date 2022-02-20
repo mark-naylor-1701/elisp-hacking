@@ -54,7 +54,7 @@
  (cl-labels
      ((s-expressions
        (acc)
-       (if-let (s-exp (unbinding--s-expr regexp))
+      (if-let ((s-exp (unbinding--s-expr regexp)))
            (s-expressions (cons s-exp acc))
          acc)))
 
