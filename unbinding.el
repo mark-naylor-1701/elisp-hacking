@@ -70,6 +70,20 @@
 
 ;; Public function definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun unbind-variables ()
+  "Remove binding of all variables in the current source file."
+  (mapc #'unbinding--ubound-item (funcall unbinding--defvars)))
+
+(defun unbind-functions ()
+  "Remove binding of all functions in the current source file."
+  (mapc #'unbinding--ubound-item (funcall unbinding--defuns)))
+
+(defun unbind-all ()
+  "Remove binding of all functions and variables in the current
+source file."
+  (unbind-variables)
+  (unbind-functions))
+
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
 
