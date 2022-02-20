@@ -88,15 +88,18 @@
 
 (defun unbinding-remove-variables ()
   "Remove binding of all variables in the current source file."
+  (interactive)
   (mapc #'unbinding--ubound-item (funcall unbinding--defvars)))
 
 (defun unbinding-remove-functions ()
   "Remove binding of all functions in the current source file."
+  (interactive)
   (mapc #'unbinding--ubound-item (funcall unbinding--defuns)))
 
 (defun unbinding-remove-all ()
   "Remove binding of all functions and variables in the current
 source file."
+  (interactive)
   (unbinding-remove-variables)
   (unbinding-remove-functions))
 
