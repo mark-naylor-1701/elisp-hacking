@@ -25,11 +25,40 @@
 
 ;; Private function definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun unbinding--defvars ()
-  "Collect all the defvar symbols in the current buffer."
+(defun unbinding--s-expr (regexp)
+  "Return a single instance, if any, of an s-expression, which is prefixed by `regexp'."
+  (when (search-forward-regexp regexp nil t)
+    (let* ((start (point)))
+      (forward-sexp)
+      (buffer-substring-no-properties start (point)))))
 
-  )
+(defun unbinding--s-expressions (regexp)
+ "Return a collection of s-expressions, using the `regexp' to
+  locate the string prefix of an individual s-expression."
+ (cl-labels
+     ((s-expressions
+       (acc)
+       (if-let (s-exp (unbinding--s-expr regexp))
+           (s-expressions (cons s-exp acc))
+         acc)))
 
+   (save-excursion
+     (goto-char 1)
+     (s-expressions ()))))
+
+(defvar unbinding--defvars
+  (-partial #'unbinding--s-expressions
+            unbinding--defvar-re)
+  "Return all the s-expressions that repesent variable definitions.")
+
+(defvar unbinding--defuns
+  (-partial #'unbinding--s-expressions
+            unbinding--defun-re)
+  "Return all the s-expressions that repesent function definitions.")
+
+
+
+;; Public function definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
