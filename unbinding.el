@@ -56,7 +56,17 @@
             unbinding--defun-re)
   "Return all the s-expressions that repesent function definitions.")
 
+(defun unbinding--ubound-fn (sym)
+  "Return the proper unbounding function, depending on whether
+  `sym' is a function or a variable. sym should be a symbol."
+  (if (functionp sym)
+      #'fmakunbound
+    #'makunbound))
 
+(defun unbinding--ubound-item (s)
+  "Given an s-exp name `s', make it nil if it has been defined."
+  (when-let ((sym (intern-soft s)))
+    (funcall (unbinding--ubound-fn sym) sym)))
 
 ;; Public function definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
