@@ -1,6 +1,22 @@
-;; author: Mark W. Naylor
+;;; unbinding.el --- Delete variables and functions
+
+;; Copyright (©) 2022 Mark W. Naylor
+
+;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
+;; Version: 0.9
+;; Package-Requires: ((emacs "26.0") (dash "20210826.1149"))
 ;; file:  unbinding.el
 ;; date:  2022-Feb-18
+
+;;; Commentary:
+
+;; Allows a developer to delete all definitions in a current source
+;; buffer. This will let `eval-buffer' to regenerate all definitions,
+;; including those created by `defvar'. `defvar' only sets the value
+;; for a variable the first time the buffer/file gets evaluated.
+
+
+(require 'dash)
 
 ;; Private variable definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -70,20 +86,22 @@
 
 ;; Public function definitions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun unbind-variables ()
+(defun unbinding-remove-variables ()
   "Remove binding of all variables in the current source file."
   (mapc #'unbinding--ubound-item (funcall unbinding--defvars)))
 
-(defun unbind-functions ()
+(defun unbinding-remove-functions ()
   "Remove binding of all functions in the current source file."
   (mapc #'unbinding--ubound-item (funcall unbinding--defuns)))
 
-(defun unbind-all ()
+(defun unbinding-remove-all ()
   "Remove binding of all functions and variables in the current
 source file."
-  (unbind-variables)
-  (unbind-functions))
+  (unbinding-remove-variables)
+  (unbinding-remove-functions))
 
+
+(provide 'unbinding)
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
 
@@ -116,3 +134,5 @@ source file."
 ;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ;; https://opensource.org/licenses/BSD-3-Clause
+
+;;; unbinding.el ends here
