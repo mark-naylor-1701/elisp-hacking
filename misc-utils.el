@@ -11,47 +11,49 @@
 (require 'cl-lib)
 (require 'dash)
 
-(defun --take-length (n xs)
-  "After applying (take n xs) to the list, return the length of the list."
-  (length (-take n xs)))
-
-(defun dired-get-marked-files-improved (&optional localp arg filter)
+(defun dired-get-explicit-marked-files (&optional localp arg filter)
   "Only gets the files that have been marked.
 `dired-get-marked-files' will return the file sitting under the
 cursor, even if there no mark character tagging it in the dired
 buffer. Passes the parameters other than
 DISTINGUISHED-ONE-MARKED; that one will always be true."
-  (let ((marked-files (dired-get-marked-files localp arg filter t)))
-    (case (--take-length 3 marked-files)
-      (3 marked-files)
-      (2 (or (let ((first (car marked-files)))
-               (and (booleanp first)
-                    first
-                    (cdr marked-files)))
-             marked-files)))))
+  (let* ((marked-files (dired-get-marked-files localp arg filter t))
+         (marked-length (length marked-files)))
+    (cond
+      ((> marked-length 2) marked-files)
+      ((= marked-length 2) (if (eq t (first marked-files))
+                               (rest marked-files)
+                             marked-files)))))
 
 ;; buffer and directory infomaton ----------------------------------------------
 
-(defun buffers-with-files (buffers)
+(cl-defun buffers-with-files (&optional (buffers (buffer-list)))
   "Given a list of buffers, returns just the ones that have a
-file associated with them."
-  (->> buffers
-       (-filter #'bufferp)
-       (-filter #'buffer-file-name)))
+file associated with them. If `buffers' is nil, use the current
+live buffers."
+  (when (listp buffers)
+    (->> buffers
+         (-filter #'bufferp)
+         (-filter #'buffer-file-name))))
 
 
-(defun buffer-names-containing (fragment buffers)
-  "Returns a list of buffers whose names contain a string fragment."
+(cl-defun buffer-names-containing (fragment &optional (buffers (buffer-list)))
+  "Returns a list of buffers whose names contain a string
+fragment. If `buffers' is nil, use the current live buffers."
   (let* ((has-fragment? (-partial #'s-contains? fragment))
-         (name-contains? #'(lambda (buffer) (funcall has-fragment? (buffer-name buffer)))))
+         (name-contains? (lambda (buffer) (funcall has-fragment? (buffer-name buffer)))))
     (->> buffers
          (-filter #'bufferp)
          (-filter name-contains?))))
 
 (defun buffer-or-name? (buffer-or-name)
-  "Is `buffer-or-name' either a buffer or a string?"
+  "Is `buffer-or-name' either a buffer or a string? If
+`buffer-or-name' is a string and there is no buffer with that
+name, return nil. If `buffer-or-name' is a buffer or is the name
+of a buffer, return t."
   (or (bufferp buffer-or-name)
-      (stringp buffer-or-name)))
+      (when (stringp buffer-or-name)
+        (-> buffer-or-name get-buffer null not))))
 
 (defun buffer-directory (buffer)
   "If the `buffer' is a buffer, return its directory as a string, nil otherwise."
