@@ -8,7 +8,10 @@
 ;; date:  2021-Mar-02
 ;; ------------------------------------------------------------------------------
 
-(defun -take-length (n xs)
+(require 'cl-lib)
+(require 'dash)
+
+(defun --take-length (n xs)
   "After applying (take n xs) to the list, return the length of the list."
   (length (-take n xs)))
 
@@ -19,7 +22,7 @@ cursor, even if there no mark character tagging it in the dired
 buffer. Passes the parameters other than
 DISTINGUISHED-ONE-MARKED; that one will always be true."
   (let ((marked-files (dired-get-marked-files localp arg filter t)))
-    (case (-take-length 3 marked-files)
+    (case (--take-length 3 marked-files)
       (3 marked-files)
       (2 (or (let ((first (car marked-files)))
                (and (booleanp first)
