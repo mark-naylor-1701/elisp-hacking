@@ -2,7 +2,7 @@
 
 ;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
 ;; Version: 0.9
-;; Package-Requires: ((emacs "26.0"))
+;; Package-Requires: ((emacs "26.3"))
 ;; Keywords: foo bar baz
 ;; URL: http://example.com/jrhacker/superfrobnicate
 ;; date:  2021-Mar-02
@@ -59,6 +59,38 @@ of a buffer, return t."
   "If the `buffer' is a buffer, return its directory as a string, nil otherwise."
   (when (bufferp  buffer)
     (with-current-buffer buffer default-directory)))
+
+(cl-defun rename-specified-buffer (&optional buffer-or-name new-name)
+  "Check that `buffer-or-name' identifies a live buffer and that
+`new-name' is a string that does *not* identify a live buffer.
+Either returns the renamed buffer or nil."
+  (interactive "bSelect buffer to rename: \nsNew name for the buffer: ")
+  (when (and (buffer-or-name? buffer-or-name)
+             (stringp new-name)
+             (> (length new-name) 0)
+             (not (buffer-or-name? new-name)))
+    (if-let* ((target (get-buffer buffer-or-name))
+              (old-buffer (current-buffer))
+              ((not (eq target old-buffer))))
+        ;; The two buffers are different; switch contexts and rename.
+        (progn
+          (switch-to-buffer target)
+          (rename-buffer new-name)
+          (switch-to-buffer old-buffer)
+          target)
+      ;; Renaming the current buffer
+      (get-buffer (rename-buffer new-name)))))
+
+(cl-defun swap-buffer-names (&optional buffer-or-name-1 buffer-or-name-2)
+  "Given two live buffers or their names, give buffer 1 the name of buffer 2 and buffer 2 the name of buffer 1. Returns Returns buffer 1 upon success, nil otherwise."
+  (interactive "bSelecty buffer #1: \nbSelect buffer #2: ")
+  (when-let* ((b1 (and (buffer-or-name? buffer-or-name-1) (get-buffer buffer-or-name-1)))
+              (b2 (and (buffer-or-name? buffer-or-name-2) (get-buffer buffer-or-name-2)))
+              (b1-name (buffer-name b1))
+              (b2-name (buffer-name b2)))
+    (rename-specified-buffer b1 (generate-new-buffer-name "temp-buffer"))
+    (rename-specified-buffer b2 b1-name)
+    (rename-specified-buffer b1 b2-name)))
 
 ;; -----------------------------------------------------------------------------
 
