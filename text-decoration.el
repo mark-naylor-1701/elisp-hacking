@@ -6,18 +6,20 @@
 
 ;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
 ;; Version: 0.9
-;; Package-Requires: ((emacs "26.0") (names "20180321.1155") (a "20201203.1927") (dash-functional "20201215.40"))
+;; Package-Requires: ((emacs "26.0") (names "20180321.1155") (dash "2.18.0"))
 ;; file:  text-decoration.el
 ;; date:  2020-Dec-21
 
 ;;; Commentary:
 
+;; Old requirements
+;; (dash-functional "20201215.40") (a "20201203.1927")
+
 ;; Diacritical application
 
 (require 'names)
-(require 'a)
-(require 'dash-functional)
-(require 'subr-x)
+(require 'dash)
+(require 's)
 
 ;; Begin namespace definition
 (define-namespace text-decoration:
@@ -144,7 +146,8 @@
   (+ char (- bold-italic-0 ?0)))
 
 (defun alter-char (code char)
-  "Append a Unicode character to a character if not a whitespace. Return result as a string."
+  "Append a Unicode character to a character if not a whitespace.
+Return result as a string."
   (if (funcall not-whitespace? char)
       (string char code)
     (string char)))
@@ -213,12 +216,12 @@
                          '(?s . ?ꜱ) '(?t . ?ᴛ) '(?u . ?ᴜ) '(?v . ?ᴠ) '(?w . ?ᴡ) '(?x . ?x)
                          '(?y . ?ʏ) '(?z . ?ᴢ))
 
-"The data structue that drives the whole small capital letter
+  "The data structue that drives the whole small capital letter
 conversion system. It's a mapping with unique domain and range,
 so lookups on values work as well as as for keys.")
 
 (defun lower-case<->small-caps (char converter)
-"Convert a character `char' to/from a small capital letter. Action
+  "Convert a character `char' to/from a small capital letter. Action
 based upon the supplied `converter' function.
 The fuction is of the form (f character look-up-association-list)"
   ;; If an appropriate match for `char' is not found, return `char' instead.
@@ -229,32 +232,32 @@ The fuction is of the form (f character look-up-association-list)"
 ;; function selects the correct element from the pair.
 
 (defvar char-to-smallcaps (-compose #'cdr #'assoc)
-"The key is the first element of the dotted pair, the lowercase
+  "The key is the first element of the dotted pair, the lowercase
 letter. The match is the second element of the pair")
 
 (defvar char-to-lowercase (-compose #'car #'rassq)
-"The key is the second element of the dotted pair, the small
+  "The key is the second element of the dotted pair, the small
 capital letter. The match is the first element of the pair")
 
 (defun string->small-caps (str)
-"Convert the lowercase letters in the string to small capital
+  "Convert the lowercase letters in the string to small capital
 letters."
   (concat
-    (mapcar #'(lambda (char)
-                (lower-case<->small-caps char char-to-smallcaps) )
-            (string-to-list str))))
+   (mapcar #'(lambda (char)
+               (lower-case<->small-caps char char-to-smallcaps) )
+           (string-to-list str))))
 
 (defun string->no-small-caps (str)
-"Convert the small capital letters in the string to lowercase
+  "Convert the small capital letters in the string to lowercase
 letters."
   (concat
-    (mapcar #'(lambda (char)
-                (lower-case<->small-caps char char-to-lowercase) )
-            (string-to-list str))))
+   (mapcar #'(lambda (char)
+               (lower-case<->small-caps char char-to-lowercase) )
+           (string-to-list str))))
 
 
 (defun region-convert (string-converter)
-"If a region is active, change all its letters using the
+  "If a region is active, change all its letters using the
 `string-converter' function."
   (when (region-active-p)
     (let* ((start (region-beginning))
@@ -267,17 +270,19 @@ letters."
       ;; reaching this point in the conversion process.
       t)))
 
-(defvar vowels (a-list ?a ?α ?A ?Α
-                       ?e ?ε ?E ?Ε
-                       ?i ?ι ?I ?Ι
-                       ?o ?ο ?O ?Ο
-                       ?u ?υ ?U ?Υ)
+(defvar vowels
+  '((?a . ?α) (?A . ?Α)
+    (?e . ?ε) (?E . ?Ε)
+    (?i . ?ι) (?I . ?Ι)
+    (?o . ?ο) (?O . ?Ο)
+    (?u . ?υ) (?U . ?Υ))
   "Convertion table of Latin vowels to Greek.")
 
 (defun greekify-char (char)
   "Return a Greek chararter if `char' is a Latin vowel, `char' otherwise."
+  ;; (assoc-default char vowels nil char)
   (or
-   (a-get vowels char)
+   (cdr (assoc char vowels))
    char))
 
 (defun ungreekify-char (char)

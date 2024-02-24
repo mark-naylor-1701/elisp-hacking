@@ -8,8 +8,8 @@
 ;; date:  2021-Mar-02
 ;; ------------------------------------------------------------------------------
 
-(require 'cl-lib)
-(require 'dash)
+;;(require 'cl-lib)
+;;(require 'dash)
 
 (defun dired-get-explicit-marked-files (&optional localp arg filter)
   "Only gets the files that have been marked.
