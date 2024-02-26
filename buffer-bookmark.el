@@ -41,7 +41,8 @@
     (bbm-set buffer-bookmarks (current-buffer))))
 
 (defun buffer-bookmark-remove ()
-  "A clean-up function. When a buffer is killed, its bookmark entry is no longer needed. Meant to be used with kill-buffer-hook"
+  "A clean-up function. When a buffer is killed, its bookmark entry
+is no longer needed. Meant to be used with kill-buffer-hook"
   (when (boundp 'buffer-bookmarks)
     (map-delete buffer-bookmarks (current-buffer))))
 
@@ -55,7 +56,7 @@
   (interactive)
   (let ((page-down (or page-fn #'page-down)))
     (funcall page-down)
-    (optional-buffer-bookmark-set)))
+    (buffer-bookmark-set)))
 
 (defun erc-page-up-with-bookmark ()
   (interactive)
