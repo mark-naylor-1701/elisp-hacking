@@ -9,16 +9,26 @@
 ;; file:  better-paging.el
 ;; date:  2021-Feb-10
 
-
 (defun page-scroll (jump-line anchor-fn compare-fn recenter-point scroll-fn)
-  (let ((start-point (point)))
-    (move-to-window-line jump-line)
-    (funcall anchor-fn)
-    (if (funcall compare-fn start-point (point))
-        (recenter recenter-point)
+  (let* ((start-point (point))
+         (_ (move-to-window-line jump-line))
+         (_ (funcall anchor-fn))
+        (new-point (point)))
+    (if (funcall compare-fn start-point new-point)
+        (progn
+          (recenter recenter-point)
+          new-point)
       (progn
         (goto-char start-point)
-        (funcall scroll-fn)))))
+        (condition-case erc
+         (funcall scroll-fn)
+         (error (better-paging-handler erc)))))))
+
+(defun better-paging-handler (erc)
+  (let ((msg (car erc)))
+    (or (string= msg "end-of-buffer")
+        (string= msg "beginning-of-buffer")
+        (error msg))))
 
 (defun page-up (&optional anchor-fn)
   (interactive)
