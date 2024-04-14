@@ -9,25 +9,27 @@
 ;; file:  better-paging.el
 ;; date:  2021-Feb-10
 
-(defun page-scroll (jump-line anchor-fn compare-fn recenter-point scroll-fn)
+(defun page-scroll (new-window-line anchor-fn point-compare-fn
+                    point-at-line-number scroll-fn)
   (let* ((start-point (point))
-         (_ (move-to-window-line jump-line))
+         (_ (move-to-window-line new-window-line))
          (_ (funcall anchor-fn))
         (new-point (point)))
-    (if (funcall compare-fn start-point new-point)
+    (if (funcall point-compare-fn start-point new-point)
         (progn
-          (recenter recenter-point)
+          (recenter point-at-line-number)
           new-point)
       (progn
         (goto-char start-point)
         (condition-case erc
          (funcall scroll-fn)
-         (error (better-paging-handler erc)))))))
+         (error (bp-scroll-erc-handler erc)))))))
 
-(defun better-paging-handler (erc)
+(defun bp-scroll-erc-handler (erc)
   (let ((msg (car erc)))
-    (or (string= msg "end-of-buffer")
-        (string= msg "beginning-of-buffer")
+    (if (not
+         (or (string= msg "end-of-buffer")
+             (string= msg "beginning-of-buffer")))
         (error msg))))
 
 (defun page-up (&optional anchor-fn)
@@ -47,6 +49,20 @@
    #'>
    -1
    #'scroll-down-command))
+
+(defun info-page-up ()
+  "Like `page-up', except that it will jump to the next info node
+when at the bottom of the current page."
+  (interactive)
+  (if (not (page-up))
+      (Info-scroll-up)))
+
+(defun info-page-down ()
+  "Like `page-down', except that it will jump to the previous info node
+when at the top of the current page."
+  (interactive)
+  (if (not (page-down))
+      (Info-scroll-down)))
 
 (defun prior-erc-tag ()
   (search-backward-regexp "^<" nil t))
