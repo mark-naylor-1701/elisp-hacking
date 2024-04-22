@@ -9,27 +9,40 @@
 ;; file:  better-paging.el
 ;; date:  2021-Feb-10
 
+;; Requires
+
 (require 'cl-lib)
 (require 'info)
 (require 'locate)
 
+
+
+;; Values
+
+(defvar-local bp--top '(top))
+(defvar-local bp--bottom '(bottom))
+
+
+
+;; Functions
+
 (defun page-up (&optional move-point-fn)
   (interactive)
   (when (> (cl-first (page--count-lines-page)) (line-number-bottom-window))
-    (let ((recenter-positions '(bottom)))
+    (let ((recenter-positions bp--bottom))
       (move-to-window-line-top-bottom))
     (funcall (or move-point-fn #'backward-paragraph))
-    (let ((recenter-positions '(top)))
+    (let ((recenter-positions bp--top))
       (recenter-top-bottom))
     (point)))
 
 (defun page-down (&optional move-point-fn)
   (interactive)
   (when (> (line-number-top-window) (bp--top-line))
-    (let ((recenter-positions '(top)))
+    (let ((recenter-positions bp--top))
       (move-to-window-line-top-bottom))
     (funcall (or move-point-fn #'forward-paragraph))
-    (let ((recenter-positions '(bottom)))
+    (let ((recenter-positions bp--bottom))
       (recenter-top-bottom))
     (point)))
 
@@ -37,29 +50,32 @@
   "Like `page-up', except that it will jump to the next info node
 when at the bottom of the current page."
   (interactive)
-  (if (not (page-up))
-      (Info-scroll-up)))
+  (unless (page-up)
+    (Info-scroll-up)))
 
 (defun info-page-down ()
   "Like `page-down', except that it will jump to the previous info node
 when at the top of the current page."
   (interactive)
-  (if (not (page-down))
-      (Info-scroll-down)))
+  (unless (page-down)
+    (Info-scroll-down)))
 
 (defun prior-erc-tag ()
   (search-backward-regexp "^<" nil t))
 
 (defun next-erc-tag ()
-  (search-forward-regexp "^<" nil t))
+  (search-forward-regexp "^\\(<\\|erc>\\)" nil t))
 
 (defun erc-page-down ()
   (interactive)
-  (page-down #'next-erc-tag))
+  (page-down #'prior-erc-tag))
 
 (defun erc-page-up ()
   (interactive)
-  (page-up #'prior-erc-tag))
+  (page-up #'next-erc-tag))
+
+(defun erc-page-up ()
+  (interactive)
 
 (defun line-number-window-relative (number-or-symbol)
   (save-excursion
