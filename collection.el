@@ -27,13 +27,13 @@
 
 ;; Values
 
-(setq collection--base-test-fns
+(defvar collection--base-test-fns
       (list #'consp #'arrayp #'hash-table-p #'recordp))
 ;; composite if any of the base tests pass.
-(setq collection-composite-fn
+(defvar collection-composite-fn
       (apply #'-orfn collection--base-test-fns))
 ;; atomic if none of the base tests pass.
-(setq collection-atomic-fn
+(defvar collection-atomic-fn
       (apply #'-andfn (mapcar #'-not collection--base-test-fns )))
 
 
