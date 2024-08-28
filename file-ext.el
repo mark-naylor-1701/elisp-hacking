@@ -30,31 +30,21 @@
 (defun fxt-select-find-file ()
   "Determine which find file function to use."
   (cond
-   ((and (boundp 'helm-mode) helm-mode (functionp 'helm-find-files))
-    #'helm-find-files)
+   ((functionp 'helm-find-files) #'helm-find-files)
 
-   ((and ido-mode (functionp 'ido-find-file))
-    #'ido-find-file)
+   ((functionp 'ido-find-file) #'ido-find-file)
 
-   (t
-    #'find-file)))
+   (t #'find-file)))
 
 (defun fxt-select-find-file-read-only ()
   "Determine which find file read only function to use."
   (cond
-   ;; Must check existence of variable `helm-mode' before testing it. The helm
-   ;; package is optional and could be uninstalled at some point.
-   ((and (boundp 'helm-mode) helm-mode (functionp '--helm-find-files-read-only))
-    #'fxt-helm-find-files-read-only)
+   ((functionp 'fxt-helm-find-files-read-only) #'fxt-helm-find-files-read-only)
 
-   ;; Variable `ido-mode' should exist because the ido package is built into
-   ;; emacs.
-   ((and ido-mode (functionp 'ido-find-file-read-only))
-    #'ido-find-file-read-only)
+   ((functionp 'ido-find-file-read-only) #'ido-find-file-read-only)
 
    ;; Default base-line function.
-   (t
-    #'find-file-read-only)))
+   (t #'find-file-read-only)))
 
 (defun fxt-find-file ()
   "Replacement for basic `find-file'."
