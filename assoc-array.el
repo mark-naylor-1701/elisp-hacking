@@ -2,7 +2,7 @@
 
 ;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
 ;; Version: 0.9
-;; Package-Requires: ((emacs "29.0"))
+;; Package-Requires: ((emacs "29.0") (collection "0.9"))
 ;; Keywords:
 ;; URL:
 ;; Date:  2024-Jun-04
@@ -11,9 +11,17 @@
 ;;; Commentary:
 ;;  For a very large associative array type value (alist, plist, or hash-table),
 ;;  Emacs will not display all the keys and values. This package supplies the
-;;  functions to open a buffer dump the contents in a more readable form.
+;;  functions to open a buffer and dump the contents in a more readable form.
 
+
 ;;; Code:
+
+;; Requires
+(require 'dash)
+(require 'collection)
+
+
+;; Functions
 
 (defun asca-list->alist (xs)
   "Convert an ordinary list into an alist.
@@ -36,20 +44,20 @@ one will have a nil value."
 Uses key/value pairs to construct the cons cells."
   (cl-mapcar #'cons (hash-table-keys ht) (hash-table-values ht)))
 
-(cl-defun asca-dump-alist (alist &optional (b (get-buffer-create "*dump*")))
+(cl-defun asca-dump-alist (alist &optional buffer-or-name)
   "Print out the key value pairs.
 
 ALIST is the structure to be printed. Results go into a buffer. B is the
   optional buffer, defaults to *dump* if one is not supplied."
-  (let ((alist (cl-copy-list alist)))
-    (switch-to-buffer-other-window b)
+  (let ((buffer (get-buffer-create (or buffer-or-name "*dump*"))))
+    (switch-to-buffer-other-window buffer)
     (erase-buffer)
     (save-excursion
      (while alist
-       (princ (caar alist) b)
-       (princ " :: " b)
-       (princ (cdar alist) b)
-       (princ "\n" b)
+       (princ (caar alist) buffer)
+       (princ " :: " buffer)
+       (princ (cdar alist) buffer)
+       (princ "\n" buffer)
        (setq alist (cdr alist))))))
 
 (defun asca-alistp (xs)
@@ -61,14 +69,84 @@ ALIST is the structure to be printed. Results go into a buffer. B is the
   "Prints out the keys and their values of an associative array AA."
   (cond
    ((hash-table-p aa)
-    (asca-dump-alist (asca-hash-table->alist aa) (get-buffer-create "*dump hash-table*")))
+    (asca-dump-alist (asca-hash-table->alist aa) "*dump hash-table*"))
 
    ((asca-alistp aa)
-    (asca-dump-alist aa (get-buffer-create "*dump alist*")))
+    (asca-dump-alist aa "*dump alist*"))
 
    ((plistp aa)
-    (asca-dump-alist (asca-list->alist aa) (get-buffer-create "*dump plist*")))))
+    (asca-dump-alist (asca-list->alist aa) "*dump plist*"))))
 
+(defun asca-pure-plist-p (xs)
+  "Return t if XS is a plist and all the keys are atomic, nil otherwise."
+  (and (plistp xs)
+       (cl-every #'collection-atomicp
+                 (map-keys xs))))
+
+(defun asca-pure-alist-p (xs)
+  "Return t if XS is a list and all the contained items are lists,
+nil otherwise."
+  (and (consp xs)
+       (cl-every #'consp xs)))
+
+(defun asca-pure-hash-table-p (xs)
+  "Return t if XS is a hash-table and all the keys are atomic, nil otherwise."
+  (and (hash-table-p xs)
+       (cl-every #'collection-atomicp
+                 (map-keys xs))))
+
+;;; get functions
+;; (gethash KEY TABLE &optional DFLT)
+;; (plist-get PLIST PROP &optional PREDICATE)            ; PREDICATE defaults to eq
+;; (alist-get KEY ALIST &optional DEFAULT REMOVE TESTFN) ; TESTFN default to eq
+;; (plist-member PLIST PROP &optional PREDICATE)         ;
+
+;;; put functions
+;; (puthash KEY VALUE TABLE)
+;; (add-to-list LIST-VAR ELEMENT &optional APPEND COMPARE-FN)
+;; (plist-put PLIST PROP VAL &optional PREDICATE)
+
+;;; remove functions
+;; (remhash KEY TABLE)
+
+;;; Function API -- these may need to be macros.
+;; (defun asca-get (assoc-array key &optional default predicate) <BODY>)
+;; (defun asca-put (assoc-array key value &optional predicate) <BODY>)
+;; (defun asca-rem (assoc-array key &optional predicate) <BODY>
+
+(cl-defun asca-rem (assoc-array key &optional (predicate #'equal))
+  (when-let ((remove-fnc
+              (cond
+               ((hash-table-p assoc-array) #'asca--hash-table-rem)
+               ((asca-alistp assoc-array) #'asca--alist-rem)
+               ((plistp assoc-array) #'asca--plist-rem))))
+    (funcall remove-fnc assoc-array key predicate)))
+
+;; Private
+
+(cl-defun asca--plist-rem (plist key &optional (pred #'equal))
+  (if-let* (((member key (map-keys plist)))
+            (idx (-find-index (lambda (x) (funcall pred x key)) plist))
+            ((delete key plist))
+            (next-item (nth idx plist)))
+      (delete next-item plist)))
+
+(cl-defun asca--alist-rem (alist key &optional (pred 'equal))
+  "Remove the KEY value pair from ALIST, if found.
+
+ALIST must be a place that can be modified. This is a destructive
+function."
+  (cl-delete-if
+   (lambda (x)
+     (funcall pred key (car x)))
+   alist))
+
+(cl-defun asca--hash-table-rem (hash-table key &optional (_ nil))
+  "Remove the KEY value pair from HASH-TABLE, if found.
+
+HASH-TABLE must be a place that can be modified. This is a destructive function.
+  The third parameter is disposable. It exists for API compatibility."
+  (remhash key hash-table))
 
 
 ;; ------------------------------------------------------------------------------

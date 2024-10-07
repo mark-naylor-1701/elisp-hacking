@@ -28,7 +28,7 @@
 ;; Values
 
 (defvar collection--base-test-fns
-      (list #'consp #'arrayp #'hash-table-p #'recordp))
+  (list #'consp #'arrayp #'hash-table-p #'recordp))
 ;; composite if any of the base tests pass.
 (defvar collection-composite-fn
       (apply #'-orfn collection--base-test-fns))
