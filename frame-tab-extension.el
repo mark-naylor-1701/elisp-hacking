@@ -1,8 +1,46 @@
+;; -*- lexical-binding: t; read-symbol-shorthands: (("fte-" . "frame-tab-")) -*-
 ;; author: Mark W. Naylor
 ;; file:  frame-tab-extension.el
 ;; date:  2024-Sep-29
 
+(defun fte-kill-buffer-and-frame (p)
+  (interactive "p")
+  (let ((buffers (mapcar #'window-buffer (window-list nil 'never))))
+    (cond
+     ((= p 1)
+      (if (fte--all-eq-p buffers)
+          (fte--close-buffer-and-frame)
+        (message "Windows do not display the same buffer.")))
 
+     ((= p 4)
+      (when (yes-or-no-p
+             (format "Kill #<buffer %s> and close frame? "
+                     (first buffers)))
+        (fte--close-buffer-and-frame)))
+
+     ((= p 16)
+      (progn
+        (save-buffer)
+        (fte--close-buffer-and-frame)))
+
+     ((= p 64)
+      (progn
+        (set-buffer-modified-p nil)
+        (fte--close-buffer-and-frame))))))
+
+(defun fte--all-eq-p (seq)
+  "Are all the remaing sequence elements `eq' the first?"
+  (-every-p (lambda (x) (eq x (first seq))) (rest seq)))
+
+(defun fte--close-buffer-and-frame ()
+  "If the current buffer can be killed, do so, then kill the frame."
+  (when (kill-buffer)
+    (delete-frame)))
+
+(defun fte--close-buffer-and-tab ()
+  "If the current tab can be killed, do so, then kill the frame."
+  (when (kill-buffer)
+    (tab-bar-close-tab)))
 
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
