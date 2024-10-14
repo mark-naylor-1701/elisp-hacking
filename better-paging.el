@@ -38,7 +38,7 @@
 This looks like the move window down in GUI editors. The default place to move
 the point is `backward-paragraph'. MOVE-POINT-FN overrides the point movement."
   (interactive)
-  (when (> (cl-first (page--count-lines-page)) (line-number-bottom-window))
+  (when (> (count-lines (point-min) (point-max)) (line-number-bottom-window))
     (let ((recenter-positions bp--bottom))
       (move-to-window-line-top-bottom))
     (funcall (or move-point-fn #'backward-paragraph))
