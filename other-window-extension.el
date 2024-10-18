@@ -1,31 +1,42 @@
 ;;; other-window-extension.el --- Combination of other window and split window. -*- lexical-binding: t; read-symbol-shorthands: (("owe-" . "other-window-extension-")) -*-
 
-;;; Commentary:
-;;  Inspired by the *other-window* functions. Probabably will not implement the
-;;  full set.
-
-
-;; Key              Binding
-;; C-x 4 C-f		find-file-other-window
-;; C-x 4 C-j		dired-jump-other-window
-;; C-x 4 C-o		display-buffer
-;; C-x 4 .			xref-find-definitions-other-window
-;; C-x 4 0			kill-buffer-and-window
-;; C-x 4 1			same-window-prefix
-;; C-x 4 4			other-window-prefix
-;; C-x 4 a			add-change-log-entry-other-window
-;; C-x 4 b			switch-to-buffer-other-window
-;; C-x 4 c			clone-indirect-buffer-other-window
-;; C-x 4 d			dired-other-window
-;; C-x 4 f			find-file-other-window
-;; C-x 4 m			compose-mail-other-window
-;; C-x 4 p			project-other-window-command
-;; C-x 4 r			find-file-read-only-other-window
-
 
 ;; author: Mark W. Naylor
 ;; file:  other-window-extension.el
 ;; date:  2024-Oct-17
+
+
+;;; Commentary:
+;;  Inspired by the *other-window* functions. Probabably will not implement the
+;;  full set. TBD dertermined baesed upon lessons learned during incremental development.
+
+;; This form defines buffer local functions that should be kept out of the
+;; global namespace. Lexical binding makes them available to public functions.
+(cl-labels
+    ((-buffer-name (name)
+       (interactive "BSelect buffer for new window:")
+       name))
+
+  (defun owe-buffer-below (lines)
+    "Create a window below the current one, make it active, switch to the
+selected buffer."
+    (interactive "p")
+    (when-let (buffer (call-interactively #'-buffer-name))
+      (split-window-below lines)
+      (select-window (next-window))
+      (switch-to-buffer buffer)))
+
+  (defun owe-buffer-right (lines)
+    "Create a window below the current one, make it active, switch to the
+selected buffer."
+    (interactive "p")
+    (when-let (buffer (call-interactively #'-buffer-name))
+      (split-window-right lines)
+      (select-window (next-window))
+      (switch-to-buffer buffer)))
+
+  )
+
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
 
