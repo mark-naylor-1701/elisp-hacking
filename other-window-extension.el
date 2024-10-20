@@ -13,27 +13,103 @@
 ;; This form defines buffer local functions that should be kept out of the
 ;; global namespace. Lexical binding makes them available to public functions.
 (cl-labels
-    ((-buffer-name (name)
-       (interactive "BSelect buffer for new window:")
-       name))
+    ((-buffer-name (buffer)
+       (interactive "BSelect a buffer for the new window:")
+       buffer)
+
+     (-file-name (file)
+       (interactive "FSelect a file for the new window:")
+       file)
+
+     (-file-name-read-only (file-ro)
+       (interactive "fSelect a read-only file for the new window:")
+       file-ro)
+
+     (-command (cmd)
+       (interactive "CSelect a command to run in the new window:")
+       cmd)
+
+     (-directory (dir)
+       (interactive "DSelect a directory for dired in the new window:")
+       dir))
 
   (defun owe-buffer-below (lines)
-    "Create a window below the current one, make it active, switch to the
-selected buffer."
-    (interactive "p")
+    "Create a window below the current one, make it active, switch to
+the selected buffer."
+    (interactive "P")
     (when-let (buffer (call-interactively #'-buffer-name))
-      (split-window-below lines)
-      (select-window (next-window))
+      (select-window (split-window-below lines))
       (switch-to-buffer buffer)))
 
-  (defun owe-buffer-right (lines)
-    "Create a window below the current one, make it active, switch to the
-selected buffer."
-    (interactive "p")
+  (defun owe-buffer-right (cols)
+    "Create a window to the right of the current one, make it active,
+switch to the selected buffer."
+    (interactive "P")
     (when-let (buffer (call-interactively #'-buffer-name))
-      (split-window-right lines)
-      (select-window (next-window))
+      (select-window (split-window-right cols))
       (switch-to-buffer buffer)))
+
+  (defun owe-file-below (lines)
+    "Create a window below the current one, make it active, switch to
+the selected file."
+    (interactive "P")
+    (when-let (file (call-interactively #'-file-name))
+      (select-window (split-window-below lines))
+      (find-file file)))
+
+  (defun owe-file-right (cols)
+    "Create a window to the right of the current one, make it active,
+switch to the selected file."
+    (interactive "P")
+    (when-let (file (call-interactively #'-file-name))
+      (select-window (split-window-right cols))
+      (find-file file)))
+
+  (defun owe-file-read-only-below (lines)
+    "Create a window below the current one, make it active, switch to
+the selected file in read-only mode."
+    (interactive "P")
+    (when-let (file (call-interactively #'-file-name-read-only))
+      (select-window (split-window-below lines))
+      (find-file-read-only file)))
+
+  (defun owe-file-read-only-right (cols)
+    "Create a window to the right of the current one, make it active,
+switch to the selected file in read-only mode."
+    (interactive "P")
+    (when-let (file (call-interactively #'-file-name-read-only))
+      (select-window (split-window-right cols))
+      (find-file-read-only file)))
+
+  (defun owe-prefix-below (lines)
+    "Create a window below the current one and run a selected comand in it."
+    (interactive "P")
+    (when-let ((cmd (call-interactively #'-command)))
+      (select-window (split-window-below lines))
+      (call-interactively cmd)))
+
+  (defun owe-prefix-right (cols)
+    "Create a window to the right of the current one and run a selected comand in it."
+    (interactive "P")
+    (when-let ((cmd (call-interactively #'-command)))
+      (select-window (split-window-right cols))
+      (call-interactively cmd)))
+
+  (defun owe-directory-below (lines)
+    "Create a window below the current one and open the selected directory in
+dired mode."
+    (interactive "P")
+    (when-let ((dir (call-interactively #'-directory)))
+      (select-window (split-window-below lines))
+      (dired dir)))
+
+  (defun owe-directory-right (cols)
+    "Create a window below the current one and open the selected directory in
+dired mode."
+    (interactive "P")
+    (when-let ((dir (call-interactively #'-directory)))
+      (select-window (split-window-right cols))
+      (dired dir)))
 
   )
 
