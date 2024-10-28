@@ -8,110 +8,89 @@
 
 ;;; Commentary:
 ;;  Inspired by the *other-window* functions. Probabably will not implement the
-;;  full set. TBD dertermined baesed upon lessons learned during incremental development.
+;;  full set. TBD dertermined based upon lessons learned during incremental development.
 
-;; This form defines buffer local functions that should be kept out of the
-;; global namespace. Lexical binding makes them available to public functions.
-(cl-labels
-    ((-buffer-name (buffer)
-       (interactive "BSelect a buffer for the new window:")
-       buffer)
 
-     (-file-name (file)
-       (interactive "FSelect a file for the new window:")
-       file)
-
-     (-file-name-read-only (file-ro)
-       (interactive "fSelect a read-only file for the new window:")
-       file-ro)
-
-     (-command (cmd)
-       (interactive "CSelect a command to run in the new window:")
-       cmd)
-
-     (-directory (dir)
-       (interactive "DSelect a directory for dired in the new window:")
-       dir))
-
-  (defun owe-buffer-below (lines)
-    "Create a window below the current one, make it active, switch to
+;; Similiar to (switch-to-buffer-other-window BUFFER-OR-NAME &optional NORECORD)
+(defun owe-buffer-below (buffer-or-name &optional norecord)
+  "Create a window below the current one, make it active, switch to
 the selected buffer."
-    (interactive "P")
-    (when-let (buffer (call-interactively #'-buffer-name))
-      (select-window (split-window-below lines))
-      (switch-to-buffer buffer)))
+  (interactive (list (read-buffer "Select a buffer for the new window: ")))
+  (select-window (split-window-below current-prefix-arg))
+  (switch-to-buffer buffer-or-name))
 
-  (defun owe-buffer-right (cols)
-    "Create a window to the right of the current one, make it active,
+;; Similiar to (switch-to-buffer-other-window BUFFER-OR-NAME &optional NORECORD)
+(defun owe-buffer-right (buffer-or-name &optional norecord)
+  "Create a window to the right of the current one, make it active,
 switch to the selected buffer."
-    (interactive "P")
-    (when-let (buffer (call-interactively #'-buffer-name))
-      (select-window (split-window-right cols))
-      (switch-to-buffer buffer)))
+  (interactive (list (read-buffer "Select a buffer for the new window: ")))
+  (select-window (split-window-right current-prefix-arg))
+  (switch-to-buffer buffer-or-name))
 
-  (defun owe-file-below (lines)
-    "Create a window below the current one, make it active, switch to
+;; Similiar to (find-file-other-window FILENAME &optional WILDCARDS)
+(defun owe-file-below (filename &optional wildcards)
+  "Create a window below the current one, make it active, switch to
 the selected file."
-    (interactive "P")
-    (when-let (file (call-interactively #'-file-name))
-      (select-window (split-window-below lines))
-      (find-file file)))
+  (interactive (list (read-file-name "Select file for the new window: ")))
+  (select-window (split-window-below current-prefix-arg))
+  (find-file filename))
 
-  (defun owe-file-right (cols)
-    "Create a window to the right of the current one, make it active,
-switch to the selected file."
-    (interactive "P")
-    (when-let (file (call-interactively #'-file-name))
-      (select-window (split-window-right cols))
-      (find-file file)))
+;; Similiar to (find-file-other-window FILENAME &optional WILDCARDS)
+(defun owe-file-right (filename &optional wildcards)
+  "Create a window below the current one, make it active, switch to
+the selected file."
+  (interactive (list (read-file-name "Select file for the new window: ")))
+  (select-window (split-window-right current-prefix-arg))
+  (find-file filename))
 
-  (defun owe-file-read-only-below (lines)
-    "Create a window below the current one, make it active, switch to
+;; Similiar to (find-file-read-only-other-window FILENAME &optional WILDCARDS)
+(defun owe-file-read-only-below (filename &optional wildcards)
+  "Create a window below the current one, make it active, switch to
 the selected file in read-only mode."
-    (interactive "P")
-    (when-let (file (call-interactively #'-file-name-read-only))
-      (select-window (split-window-below lines))
-      (find-file-read-only file)))
+  (interactive
+   (list (read-file-name "Select file for the new window: " nil nil t)))
+  (select-window (split-window-below current-prefix-arg))
+  (find-file-read-only filename))
 
-  (defun owe-file-read-only-right (cols)
-    "Create a window to the right of the current one, make it active,
+;; Similiar to (find-file-read-only-other-window FILENAME &optional WILDCARDS)
+(defun owe-file-read-only-right (filename &optional wildcards)
+  "Create a window to the right of the current one, make it active,
 switch to the selected file in read-only mode."
-    (interactive "P")
-    (when-let (file (call-interactively #'-file-name-read-only))
-      (select-window (split-window-right cols))
-      (find-file-read-only file)))
+  (interactive
+   (list (read-file-name "Select file for the new window: " nil nil t)))
+  (select-window (split-window-right current-prefix-arg))
+  (find-file-read-only filename))
 
-  (defun owe-prefix-below (lines)
-    "Create a window below the current one and run a selected comand in it."
-    (interactive "P")
-    (when-let ((cmd (call-interactively #'-command)))
-      (select-window (split-window-below lines))
-      (call-interactively cmd)))
+;; Similiar to (other-window-prefix)
+(defun owe-prefix-below (cmd)
+  "Create a window below the current one and run a selected comand in it."
+  (interactive (list (read-command "Select command to run in the new window: ")))
+  (select-window (split-window-below current-prefix-arg))
+  (call-interactively cmd))
 
-  (defun owe-prefix-right (cols)
-    "Create a window to the right of the current one and run a selected comand in it."
-    (interactive "P")
-    (when-let ((cmd (call-interactively #'-command)))
-      (select-window (split-window-right cols))
-      (call-interactively cmd)))
+;; Similiar to (other-window-prefix)
+(defun owe-prefix-right (cmd)
+  "Create a window right the current one and run a selected comand in it."
+  (interactive (list (read-command "Select command to run in the new window: ")))
+  (select-window (split-window-right current-prefix-arg))
+  (call-interactively cmd))
 
-  (defun owe-directory-below (lines)
-    "Create a window below the current one and open the selected directory in
+;; Similiar to (dired-other-window DIRNAME &optional SWITCHES)
+(defun owe-directory-below (dirname &optional switches)
+  "Create a window below the current one and open the selected directory in
 dired mode."
-    (interactive "P")
-    (when-let ((dir (call-interactively #'-directory)))
-      (select-window (split-window-below lines))
-      (dired dir)))
+  (interactive (list (read-directory-name "Select a directory for the new window:")))
+  (select-window (split-window-below current-prefix-arg))
+  (dired dirname))
 
-  (defun owe-directory-right (cols)
-    "Create a window below the current one and open the selected directory in
+;; Similiar to (dired-other-window DIRNAME &optional SWITCHES)
+(defun owe-directory-right (dirname &optional switches)
+  "Create a window below the current one and open the selected directory in
 dired mode."
-    (interactive "P")
-    (when-let ((dir (call-interactively #'-directory)))
-      (select-window (split-window-right cols))
-      (dired dir)))
+  (interactive (list (read-directory-name "Select a directory for the new window:")))
+  (select-window (split-window-right current-prefix-arg))
+  (dired dirname))
 
-  )
 
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
