@@ -1,15 +1,20 @@
 ;;; other-window-extension.el --- Combination of other window and split window. -*- lexical-binding: t; read-symbol-shorthands: (("owe-" . "other-window-extension-")) -*-
 
-
-;; author: Mark W. Naylor
-;; file:  other-window-extension.el
-;; date:  2024-Oct-17
+;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
+;; Version: 0.9
+;; Package-Requires: ((emacs "29.0"))
+;; Keywords: other window
+;; URL: https://github.com/mark-naylor-1701/elisp-hacking.git
+;; Date:  2024-Oct-17
 
 
 ;;; Commentary:
 ;;  Inspired by the *other-window* functions. Probabably will not implement the
 ;;  full set. TBD dertermined based upon lessons learned during incremental development.
+
 
+;;; Code:
+;;  Public functions/commands.
 
 ;; Similiar to (switch-to-buffer-other-window BUFFER-OR-NAME &optional NORECORD)
 (defun owe-buffer-below (buffer-or-name &optional norecord)
@@ -91,6 +96,7 @@ dired mode."
   (select-window (split-window-right current-prefix-arg))
   (dired dirname))
 
+
 
 ;; ------------------------------------------------------------------------------
 ;; BSD 3-Clause License
