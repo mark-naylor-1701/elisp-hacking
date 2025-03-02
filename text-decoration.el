@@ -1,3 +1,5 @@
+;;; -*- lexical-binding: t; -*-
+
 ;;; text-decoration.el --- Various data and function definitions to
 ;;; allow fancy applications to strings, such as bold, italics,
 ;;; conversion of lowercase letters to/from small-caps, etc.

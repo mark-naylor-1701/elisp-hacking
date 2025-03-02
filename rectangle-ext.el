@@ -1,8 +1,17 @@
+;; -*- lexical-binding: t; -*-
+
 ;; author: Mark W. Naylor
 ;; file:  rectangle-ext.el
 ;; date:  2024-May-27
 
 (require 'org-macs)
+
+
+;; variables
+(defvar-local rectext--anchor nil)
+
+
+;; functions
 
 (defun rectext-sort-rectangle (prefix)
   "Sort the text of a rectangle.
@@ -31,7 +40,7 @@ Has the effect of sorting in place."
   (interactive)
   (setq-local rectext--anchor nil))
 
-(defun rect-text-clear-rect (origin width height)
+(defun rectext-clear-rect (origin width height)
   "Do stuff"
   nil)
 
@@ -53,7 +62,7 @@ Has the effect of sorting in place."
     ;; Here is the logic for clearing out the target rectangle, based upon the
     ;; prefix P.
     (unless (= p 4)
-      rectext-clear-anchor start width height)
+      (rectext-clear-rect start width height))
     (yank-rectangle)
     (rectext-clear-anchor)))
 

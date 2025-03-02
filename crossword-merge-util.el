@@ -1,4 +1,4 @@
-;;; crossword-merge-util.el --- Functions to manange crossword puzzle merging and print tracking.
+;;; crossword-merge-util.el --- Functions to manange crossword puzzle merging and print tracking.  -*- lexical-binding: t; -*-
 
 ;; Copyright (©) 2021 Mark W. Naylor
 
@@ -28,7 +28,7 @@
 (defun cw/sources (xs)
   "Get the stripped down crossword files (sorted). Target file
 name removed if in the collection."
-  (sort (remove-if #'cw/contains (cw/bases xs)) #'string-lessp))
+  (sort (cl-remove-if #'cw/contains (cw/bases xs)) #'string-lessp))
 
 (defun cw/build-command (xs)
   "Given a collection of file names, create the concatenation command string."

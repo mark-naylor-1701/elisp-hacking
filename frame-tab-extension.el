@@ -22,6 +22,10 @@
 (require 'dash)
 
 
+;; Forward declarations
+(defvar fte--fn-label-alist)
+
+
 ;;  Public functions
 
 (defun fte-kill-buffer-and-frame (p)
@@ -109,7 +113,8 @@ matches, return \"container\"."
 (defvar fte--fn-label-alist
   (list
    (cons #'frame-tab--close-buffer-and-frame "frame")
-   (cons #'frame-tab--close-buffer-and-tab   "tab")))
+   (cons #'frame-tab--close-buffer-and-tab   "tab"))
+  "Links a function to an associated label fragment.")
 
 
 ;; ------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-;;; buffer-bookmark.el --- Provide single instance bookmarks tied to buffers.
+;;; buffer-bookmark.el --- Provide single instance bookmarks tied to buffers.  -*- lexical-binding: t; -*-
 
 ;; Copyright (©) 2021 Mark W. Naylor
 

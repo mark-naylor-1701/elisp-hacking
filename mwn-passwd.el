@@ -1,4 +1,4 @@
-;;; mwn-passwd.el --- Password wrapper
+;;; mwn-passwd.el --- Password wrapper  -*- lexical-binding: t; -*-
 
 ;; Copyright (©) 2022 Mark W. Naylor
 

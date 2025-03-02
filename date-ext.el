@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; author: Mark W. Naylor
 ;; file:  date-ext.el
 ;; date:  2024-May-15

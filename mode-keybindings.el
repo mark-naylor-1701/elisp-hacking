@@ -1,4 +1,4 @@
-;;; mode-keybindings.el --- Stripped down version of `describe-mode'
+;;; mode-keybindings.el --- Stripped down version of `describe-mode'  -*- lexical-binding: t; -*-
 
 ;; Copyright (©) 2022 Mark W. Naylor
 

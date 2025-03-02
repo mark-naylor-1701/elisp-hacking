@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; author: Mark W. Naylor
 ;; file:  text-decoration-texts.el
 ;; date:  2021-Jul-15
@@ -36,7 +38,8 @@
       (progn
         (create-test-buffer greek-text)
         (funcall body)
-        (kill-test-buffer))))
+        (kill-test-buffer))
+    ()))
 
 (ert-deftest ungreekify-buffer-test ()
   (ungreekify-buffer-fixture
@@ -53,7 +56,8 @@
       (progn
         (create-test-buffer wood-text)
         (funcall body)
-        (kill-test-buffer))))
+        (kill-test-buffer))
+    ()))
 
 (defun find-wood ()
   (when (search-forward "wood" nil t)
