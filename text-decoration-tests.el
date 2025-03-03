@@ -26,7 +26,6 @@
 
 (defun create-test-buffer (buffer-text)
   (switch-to-buffer test-buffer-name)
-  (delete-buffer)
   (insert buffer-text)
   (goto-char (point-min)))
 
