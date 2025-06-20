@@ -1,0 +1,21 @@
+* obarray-ext
+  Helper functions dealing with obarray interned symbols.
+
+** Introduction
+   Since I don't work with symbols on a regular basis, I tend to forget how they get interned, associated with values, etc. I usually remember that they are stored in an obarray, but not how to poke around the internals of those data structures.
+
+** Installation
+
+*** Download
+
+**** Save the indivdual file
+     https://github.com/mark-naylor-1701/elisp-hacking/obarray-ext.el
+
+**** Clone the elisp-hacking repo
+     https://github.com/mark-naylor-1701/elisp-hacking
+
+*** Install the package
+    M-x package-install-file
+
+** Usage
+   (require 'obarray-ext)

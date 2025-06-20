@@ -1,20 +1,22 @@
-;;;  -*- lexical-binding: t; -*-
-;;; obarray-ext.el --- Helper functions to extend obarray built-ins
+;;; obarray-ext.el --- Helper functions to extend obarray built-ins -*- lexical-binding: t; -*-
 
 ;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
 ;; Version: 0.9
 ;; Package-Requires: ((emacs "30.0"))
 ;; Keywords: obarray
-;; URL: http://example.com/jrhacker/superfrobnicate
+;; URL: https://github.com/mark-naylor-1701/elisp-hacking/obarray-ext.el
 ;; date:  2025-Jun-07
 
 
 ;;; Commentary:
 ;;
 
-;;; Code:
 
-(cl-defun oba-obarray-list (&optional pred (o obarray))
+
+;;; Code:
+;; Public
+
+(cl-defun oba-list (&optional pred (o obarray))
   "Convert an obarray to a list.
 `PRED' is a filter function for selecting items from `O'. If nil, all
 items are selected.
@@ -26,20 +28,30 @@ elisp obarray."
                  when (funcall pred sym) collect sym)
       (cl-loop for sym being symbols of o collect sym))))
 
-(cl-defun oba-obarray-variables (&optional (o obarray))
-  "Retrieves the variables from an obarray. Unless `o' is supplied, use the
-default elisp obarray."
-  (oba-obarray-list #'boundp o))
+(cl-defun oba-variables (&optional (o obarray))
+  "Retrieve the variables from an obarray.
+Unless `O' is supplied, use the default elisp obarray."
+  (oba-list #'boundp o))
 
-(cl-defun oba-obarray-functions (&optional (o obarray))
-  "Retrieves the functions from an obarray. Unless `o' is supplied, use the
-default elisp obarray."
-  (oba-obarray-list #'fboundp o))
+(cl-defun oba-functions (&optional (o obarray))
+  "Retrieve the functions from an obarray.
+Unless `O' is supplied, use the default elisp obarray."
+  (oba-list #'fboundp o))
 
-(cl-defun oba-obarray-commands (&optional (o obarray))
-  "Retrieves the commands from an obarray. Unless `o' is supplied, use the
-default elisp obarray."
-  (oba-obarray-list #'commandp o))
+(cl-defun oba-commands (&optional (o obarray))
+  "Retrieve the commands from an obarray.
+Unless `O' is supplied, use the default elisp obarray."
+  (oba-list #'commandp o))
+
+
+;; Private
+
+(defun oba--unboundp (sym)
+  "Return non-nil if the symbol `SYM' has neither a function binding nor a
+value binding."
+  (when (symbolp sym)
+    (not (or (boundp sym)
+             (fboundp sym)))))
 
 (provide 'obarray-ext)
 
