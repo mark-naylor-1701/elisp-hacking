@@ -88,9 +88,8 @@ value binding."
 
 ;; https://opensource.org/licenses/BSD-3-Clause
 
-
-;;; obarray-ext.el ends here
-
 ;; Local Variables:
 ;; read-symbol-shorthands: (("oba-" . "obarray-ext-"))
 ;; End:
+
+;;; obarray-ext.el ends here
