@@ -1,0 +1,41 @@
+* restore-mode-map
+  Set the key bindings of a major or minor mode to the orginal bindings in the
+  source file.
+
+** Introduction
+   Too many times, I have fat fingered key bound commands that have overwritten
+   the key binding and the mode stops working correctly. Unwilling to have to
+   restart the emacs session, I looked for help on the Libera #emacs channel. I
+   got good advice on how to do this manually. This package is my attempt to
+   automate the process.
+
+*** Manual process
+
+**** C-h v <name>-mode-map
+     (describe-variable "<name>-mode-map")
+
+**** s
+     (help-view-source)
+
+**** M-C-x
+     (eval-defun)
+
+** Installation
+
+*** Download
+
+**** Save the indivdual file
+     https://github.com/mark-naylor-1701/elisp-hacking/restore-mode-map.el
+
+**** Clone the elisp-hacking repo
+     https://github.com/mark-naylor-1701/elisp-hacking
+
+*** Install the package
+    M-x package-install-file
+
+** Usage
+   (require 'restore-mode-map)
+
+** Requirements
+   obarray-ext 0.9
+   https://github.com/mark-naylor-1701/elisp-hacking/obarray-ext.el
