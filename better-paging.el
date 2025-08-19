@@ -2,7 +2,7 @@
 
 ;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
 ;; Version: 0.9
-;; Package-Requires: ((emacs "26.0") (cl-lib "1.0") (info) (locate))
+;; Package-Requires: ((emacs "26.0") (window-ext "0.9") (cl-lib "1.0") (info) (locate))
 ;; Keywords: navigation
 ;; file:  better-paging.el
 ;; date:  2021-Feb-10
@@ -23,14 +23,11 @@
 (require 'info)
 (require 'locate)
 
-
-;; Values
-
-(defvar-local bp--top '(top))
-(defvar-local bp--bottom '(bottom))
+(require 'window-ext)
 
 
 ;; Functions
+;; Public
 
 (defun page-up (&optional move-point-fn)
   "Move the page up.
@@ -38,13 +35,23 @@
 This looks like the move window down in GUI editors. The default place to move
 the point is `backward-paragraph'. MOVE-POINT-FN overrides the point movement."
   (interactive)
-  (when (> (count-lines (point-min) (point-max)) (line-number-bottom-window))
-    (let ((recenter-positions bp--bottom))
-      (move-to-window-line-top-bottom))
-    (funcall (or move-point-fn #'backward-paragraph))
-    (let ((recenter-positions bp--top))
-      (recenter-top-bottom))
-    (point)))
+  (when (> (count-lines (point-min) (point-max)) (window-ext-line-number-bottom-window))
+    (let ((top-point (window-ext-goto-window-top)))
+      (window-ext-move-to-window-line-bottom)
+      (funcall (or move-point-fn #'backward-paragraph))
+      (window-ext-recenter-top)
+      ;; This section handles the case when a paragraph is larger than the window.
+      (let ((point (point)))
+        (if (< top-point point)
+            ;; Paragraph smaller than window. Keep buffer state and return the
+            ;; point.
+            point
+          ;; Paragraph larger than window. Go to original point and scroll up.
+          (progn
+            (goto-char top-point)
+            (window-ext-recenter-top)
+            (scroll-up-command)
+            (point)))))))
 
 (defun page-down (&optional move-point-fn)
   "Move the page up.
@@ -52,13 +59,23 @@ the point is `backward-paragraph'. MOVE-POINT-FN overrides the point movement."
 This looks like the move window up in GUI editors. The default place to move the
 point is `forward-paragraph'. MOVE-POINT-FN overrides the point movement."
   (interactive)
-  (when (> (line-number-top-window) (bp--top-line))
-    (let ((recenter-positions bp--top))
-      (move-to-window-line-top-bottom))
-    (funcall (or move-point-fn #'forward-paragraph))
-    (let ((recenter-positions bp--bottom))
-      (recenter-top-bottom))
-    (point)))
+  (when (> (window-ext-line-number-top-window) (bp--top-line))
+    (let ((bottom-point (window-ext-goto-window-bottom)))
+      (window-ext-move-to-window-line-top)
+      (funcall (or move-point-fn #'forward-paragraph))
+      (window-ext-recenter-bottom)
+      ;; This section handles the case when a paragraph is larger than the window.
+      (let ((point (point)))
+        (if (< point bottom-point)
+            ;; Paragraph smaller than window. Keep buffer state and return the
+            ;; point.
+            point
+          ;; Paragraph larger than window. Go to original point and scroll down.
+          (progn
+            (goto-char bottom-point)
+            (window-ext-recenter-bottom)
+            (scroll-down-command)
+            (point)))))))
 
 (defun info-page-up ()
   "This is similar to `page-up'.
@@ -98,15 +115,13 @@ line for erc input."
       ;; depends upon the side effects. That includes the calling sequence of
       ;; the actual parameters to `narrow-to-region'.
       ;; -----------------------------------------------------------------------
-      (let ((recenter-positions '(-2)))
-        (move-to-window-line-top-bottom))
+      (move-to-window-line-top-bottom -2)
       (move-end-of-line nil)
-      (narrow-to-region (point) (goto-window-top))
+      (narrow-to-region (point) (window-ext-goto-window-top))
       ;; -----------------------------------------------------------------------
       (setq found (next-erc-tag)))
     (if found
-        (let ((recenter-positions bp--bottom))
-          (recenter-top-bottom))
+        (window-ext-recenter-bottom)
       (page-down #'prior-erc-tag))))
 
 (defun erc-page-up ()
@@ -114,72 +129,12 @@ line for erc input."
   (interactive)
   (let (found)
     (save-restriction
-     (let ((recenter-positions '(1)))
-       (move-to-window-line-top-bottom))
-     (narrow-to-region (point) (goto-window-bottom))
-     (setq found (prior-erc-tag)))
+      (move-to-window-line-top-bottom 1)
+      (narrow-to-region (point) (window-ext-goto-window-bottom))
+      (setq found (prior-erc-tag)))
     (if found
-        (let ((recenter-positions bp--top))
-          (recenter-top-bottom))
+        (window-ext-recenter-top)
       (page-up #'next-erc-tag))))
-
-;TODO: Move following functions into a new library package.
-
-;; Tag for new library package
-(defun line-number-window-relative (number-or-symbol)
-  "Return the point to NUMBER-OR-SYMBOL.
-
-NUMBER-OR-SYMBOL can be an integer or one of the symbols used by
-`recenter-positions'. Restores the point before exiting the
-function."
-  (save-excursion
-    (let* ((recenter-positions (list number-or-symbol)))
-      (move-to-window-line-top-bottom)
-      (locate-current-line-number))))
-
-;; Tag for new library package
-(defun line-number-bottom-window ()
-  "Return the point of the last line, relative to the current window."
-  (line-number-window-relative 'bottom))
-
-;; Tag for new library package
-(defun line-number-top-window ()
-  "Return the point of the first line, relative to the current
-window."
-  (line-number-window-relative 'top))
-
-;; Tag for new library package
-(defun displayed-lines ()
-  "Calculate the number of full lines diplayed in the current
-window."
-  (- (line-number-bottom-window) (line-number-top-window) -1))
-
-;; Tag for new library package
-(defun goto-window-top ()
-  "Move to the first char in the window and return the new point."
-  (let ((recenter-positions bp--top))
-    (move-to-window-line-top-bottom))
-  (point))
-
-;; Tag for new library package
-(defun goto-window-bottom ()
-  "Move to the last char in the window and return the new point."
-  (let ((recenter-positions bp--bottom))
-    (move-to-window-line-top-bottom))
-  (move-end-of-line nil)
-  (point))
-
-;; Tag for new library package
-(defun narrow-to-window ()
-  "Narrow to the fully displayed lines in the current window."
-  (narrow-to-region (goto-window-top) (goto-window-bottom)))
-
-(defun bp--window-region ()
-  "Return the region of the displayed lines in the current window."
-  (save-excursion
-    (cons
-     (goto-window-top)
-     (goto-window-bottom))))
 
 (defun bp--top-line ()
   "This is a hack for `Info-mode'.
