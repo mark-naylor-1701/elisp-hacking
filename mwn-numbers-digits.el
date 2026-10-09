@@ -1,8 +1,12 @@
-;;; -*- lexical-binding: t -*-
-;; author: Mark W. Naylor
+;;; mwn-numbers-digits.el --- Numbers <-> digits conversions  -*- lexical-binding: t -*-
+
+;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
 ;; file:  mwn-numbers-digits.el
 ;; date:  2026-Sep-22
-
+;; Version: 0.9
+;; Package-Requires: ((emacs "31.0") (dash "2.19.1") (cl-lib "1.0"))
+;; Keywords:
+;; URL: https://github.com/mark-naylor-1701/elisp-hacking/blob/master/mwn-numbers-digits.el
 
 ;;; Commentary:
 
@@ -10,6 +14,7 @@
 ;;  bases over 10, the digits are the capital letter string.
 ;;  Ex.: A -> 10, B -> 11, C -> 12, ..., Z -> 35
 
+(require 'cl-lib)
 (require 'dash)
 
 
@@ -48,11 +53,11 @@ base `BASE'."
 (defvar mwn--alphas
   (mapcar
    #'char-to-string
-   (range ?A (1+ ?Z)))
+   (number-sequence ?A ?Z))
   "The letters ?A to ?Z")
 
 (defvar mwn--values
-  (range 10 36)
+  (number-sequence 10 35)
   "Equivalent values for letters a through z")
 
 (defvar mwn--alphas-x-values
