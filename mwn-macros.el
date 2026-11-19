@@ -5,8 +5,8 @@
 ;; Author: Mark W. Naylor <mark.naylor.1701@gmail.com>
 ;; Version: 0.9
 ;; Package-Requires: ((emacs "31.0"))
-;; Keywords: foo bar baz
-;; URL: http://example.com/jrhacker/superfrobnicate
+;; Keywords: macros
+;; URL: https://github.com/mark-naylor-1701/elisp-hacking/blob/master/mwn-macros.el
 ;; file:  mwn-macros.el
 ;; date:  2026-Nov-14
 
